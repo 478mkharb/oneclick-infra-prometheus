@@ -16,7 +16,8 @@ hostnames:
 
 compose:
   private_ip: private_ip_address
-
+  ansible_connection: amazon.aws.aws_ssm
+  ansible_user: ubuntu
 
 vars:
   ansible_python_interpreter: /usr/bin/python3
