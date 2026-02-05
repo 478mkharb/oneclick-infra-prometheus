@@ -1,4 +1,4 @@
-resource "aws_lb_listener" "http" {
+resource "aws_lb_listener" "http_grafana" {
   load_balancer_arn = aws_lb.monitoring.arn
   port              = 80
   protocol          = "HTTP"
@@ -8,7 +8,8 @@ resource "aws_lb_listener" "http" {
     target_group_arn = aws_lb_target_group.grafana.arn
   }
 }
-resource "aws_lb_listener" "prometheus" {
+
+resource "aws_lb_listener" "http_prometheus" {
   load_balancer_arn = aws_lb.monitoring.arn
   port              = 9090
   protocol          = "HTTP"

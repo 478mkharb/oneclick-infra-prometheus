@@ -14,4 +14,7 @@ variable "role" {
   description = "Role tag for the instances"
   type        = string
 }
-
+variable "k3s_token" {
+  description = "K3s server token"
+  type        = string
+}
