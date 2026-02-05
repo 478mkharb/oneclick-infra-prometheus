@@ -12,11 +12,13 @@ keyed_groups:
     prefix: "_"
   - key: tags.Role
     prefix: ""
-    
+
 hostnames:
   - instance-id
 
 compose:
-  ansible_connection: amazon.aws.aws_ssm
+  ansible_host: instance-id
   ansible_user: root
+  ansible_connection: amazon.aws.aws_ssm
+  ansible_shell_executable: /bin/bash
   ansible_python_interpreter: /usr/bin/python3
