@@ -26,10 +26,21 @@
     path: /etc/rancher/k3s/k3s.yaml
   register: k3s_kubeconfig
 
+- name: Wait for k3s kubeconfig
+  wait_for:
+    path: "{{ kubeconfig_path }}"
+    timeout: 300
+    state: present
+
+- name: Verify k3s kubeconfig exists
+  stat:
+    path: "{{ kubeconfig_path }}"
+  register: kubeconfig
+
 - name: Fail if k3s kubeconfig missing
   fail:
-    msg: "k3s kubeconfig not found at /etc/rancher/k3s/k3s.yaml"
-  when: not k3s_kubeconfig.stat.exists
+    msg: "k3s kubeconfig not found at {{ kubeconfig_path }}"
+  when: not kubeconfig.stat.exists
 
 - name: Ensure /root/.kube exists
   become: true
