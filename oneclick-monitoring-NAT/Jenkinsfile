@@ -37,6 +37,7 @@ pipeline {
           sh '''
             export PATH=$PATH:/var/lib/jenkins/.local/bin
             export ANSIBLE_CONFIG=$WORKSPACE/ansible/ansible.cfg
+            ansible-galaxy collection install amazon.aws --force
             ansible-playbook -i inventory/aws_ec2.yml site.yml -vvv
           '''
         }
