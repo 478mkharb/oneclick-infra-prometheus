@@ -10,13 +10,13 @@ pipeline {
     stage('Checkout') {
       steps {
         git branch: 'mukesh',
-            url: 'https://github.com/478mkharb/Ansible.git'
+            url: 'https://github.com/478mkharb/oneclick-infra-prometheus.git'
       }
     }
 
     stage('Terraform Init & Apply') {
       steps {
-        dir('oneclick-monitoring-SSM/terraform') {
+        dir('oneclick-monitoring-NAT/terraform') {
           sh '''
             terraform init
             terraform apply -auto-approve
