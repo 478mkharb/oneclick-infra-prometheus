@@ -36,7 +36,7 @@ pipeline {
         dir('oneclick-monitoring-NAT/ansible') {
           sh '''
             export PATH=$PATH:/var/lib/jenkins/.local/bin
-            ansible-playbook -i inventory/aws_ec2.yml site.yml -vv
+            ansible-playbook -i inventory/aws_ec2.yml site.yml -vvv
           '''
         }
       }
