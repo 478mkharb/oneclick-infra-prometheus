@@ -44,7 +44,7 @@ EOF
     resource_type = "instance"
 
     tags = {
-      Name    = "monitoring-instance"
+      Name    = "k3s-worker-node"
       Role    = var.role
       Project = var.project
     }

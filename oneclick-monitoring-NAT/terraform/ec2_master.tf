@@ -11,7 +11,7 @@ resource "aws_instance" "k3s_server" {
 
   tags = {
     Name    = "k3s_server"
-    Role    = "k3s_server"
+    Role    = "k3s_master"
     Project = var.project
   }
 }
