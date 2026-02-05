@@ -27,7 +27,7 @@ pipeline {
 
     stage('Wait for SSM') {
       steps {
-        sh 'sleep 60'
+        sh 'sleep 10'
       }
     }
 
