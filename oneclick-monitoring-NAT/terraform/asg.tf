@@ -1,4 +1,6 @@
 resource "aws_autoscaling_group" "k3s_workers" {
+  name = "monitoring-asg"
+  
   desired_capacity = 2
   max_size         = 3
   min_size         = 2
