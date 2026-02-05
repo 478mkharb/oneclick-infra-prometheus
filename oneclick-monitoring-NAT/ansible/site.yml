@@ -1,11 +1,7 @@
+---
 - name: Setup k3s server and monitoring
-  hosts: _k3s_server
+  hosts: k3s_server
   gather_facts: false
-  vars:
-    ansible_connection: amazon.aws.aws_ssm
-    ansible_python_interpreter: /usr/bin/python3
-    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
-    monitoring_namespace: monitoring
 
   roles:
     - k3s_install
