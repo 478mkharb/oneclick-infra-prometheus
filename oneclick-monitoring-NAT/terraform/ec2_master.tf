@@ -11,60 +11,50 @@ resource "aws_instance" "k3s_server" {
 
  user_data = base64encode(<<EOF
 #!/bin/bash
-set -eux
-
+set -ux
 exec > /var/log/k3s-server.log 2>&1
 
-echo "[BOOT] Starting k3s server bootstrap"
+echo "[BOOT] Waiting for network"
+for i in {1..30}; do
+  ping -c1 8.8.8.8 && break
+  sleep 10
+done
 
-# -----------------------------
-# System prep
-# -----------------------------
+echo "[BOOT] Updating system"
 apt-get update -y
 apt-get install -y curl iptables ca-certificates
 
-iptables -P FORWARD ACCEPT
-sysctl -w net.ipv4.ip_forward=1
+echo "[BOOT] Enable forwarding"
+iptables -P FORWARD ACCEPT || true
+sysctl -w net.ipv4.ip_forward=1 || true
 
-# -----------------------------
-# Install SSM Agent (DEB - stable)
-# -----------------------------
+echo "[SSM] Installing SSM Agent"
+
+# Try snap (Ubuntu default)
+if command -v snap >/dev/null 2>&1; then
+  snap install amazon-ssm-agent --classic || true
+fi
+
+# Fallback to deb if snap service not present
 if ! systemctl list-unit-files | grep -q amazon-ssm-agent; then
   curl -fsSL -o /tmp/amazon-ssm-agent.deb \
     https://s3.ap-south-1.amazonaws.com/amazon-ssm-ap-south-1/latest/debian_amd64/amazon-ssm-agent.deb
   dpkg -i /tmp/amazon-ssm-agent.deb || apt-get -f install -y
 fi
 
-systemctl enable amazon-ssm-agent
-systemctl restart amazon-ssm-agent
+systemctl enable amazon-ssm-agent || true
+systemctl restart amazon-ssm-agent || true
 
-# -----------------------------
-# Install k3s SERVER
-# -----------------------------
-curl -sfL https://get.k3s.io | sh -
+echo "[K3S] Installing k3s server"
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik" sh -
 
-systemctl enable k3s
-systemctl restart k3s
-
-# -----------------------------
-# Wait for kubeconfig
-# -----------------------------
-echo "[BOOT] Waiting for k3s kubeconfig..."
-while [ ! -f /etc/rancher/k3s/k3s.yaml ]; do
-  sleep 5
+echo "[K3S] Waiting for kubeconfig"
+for i in {1..30}; do
+  [ -f /etc/rancher/k3s/k3s.yaml ] && break
+  sleep 10
 done
 
-chmod 644 /etc/rancher/k3s/k3s.yaml
-
-# -----------------------------
-# Wait for node-token
-# -----------------------------
-echo "[BOOT] Waiting for k3s node-token..."
-while [ ! -f /var/lib/rancher/k3s/server/node-token ]; do
-  sleep 5
-done
-
-echo "[BOOT] k3s server is ready"
+echo "[BOOT] k3s server bootstrap complete"
 EOF
 )
 
