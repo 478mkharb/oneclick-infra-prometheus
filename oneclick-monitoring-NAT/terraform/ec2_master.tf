@@ -40,7 +40,7 @@ EOF
 
   tags = {
     Name    = "k3s_server"
-    Role    = var.role
+    Role    = "k3s_server"
     Project = var.project
   }
 }
