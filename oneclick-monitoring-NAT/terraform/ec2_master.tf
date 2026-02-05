@@ -10,6 +10,8 @@ resource "aws_instance" "k3s_server" {
   iam_instance_profile = "ec2-ssm-profile"
 
   tags = {
-    Name = "k3s-server"
+    Name    = "k3s-server"
+    Role    = "k3s_server"
+    Project = var.project
   }
 }
