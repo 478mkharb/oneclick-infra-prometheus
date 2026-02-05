@@ -1,7 +1,7 @@
-resource "aws_launch_template" "monitoring_lt" {
-  name_prefix   = "lt-${var.project}-"
+resource "aws_launch_template" "k3s_worker_lt" {
+  name_prefix   = "k3s-worker-"
   image_id      = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type_monitoring
+  instance_type = "t3.small"
 
   iam_instance_profile {
     name = "ec2-ssm-profile"
@@ -15,28 +15,33 @@ resource "aws_launch_template" "monitoring_lt" {
 #!/bin/bash
 set -eux
 
-exec > /var/log/user-data.log 2>&1
-
-echo "[BOOT] Starting bootstrap"
-
-for i in {1..30}; do
-  ping -c1 8.8.8.8 && break
-  sleep 10
-done
+exec > /var/log/k3s-worker.log 2>&1
 
 apt-get update -y
+apt-get install -y curl iptables
+
+iptables -P FORWARD ACCEPT
+sysctl -w net.ipv4.ip_forward=1
 
 snap install amazon-ssm-agent --classic || true
 systemctl enable amazon-ssm-agent
 systemctl start amazon-ssm-agent
 
-curl -sfL https://get.k3s.io | \
-  K3S_URL=https://${aws_instance.k3s_server.private_ip}:6443 \
-  K3S_TOKEN=${var.k3s_token} \
-  sh -
+K3S_URL="https://${aws_instance.k3s_server.private_ip}:6443"
 
-systemctl enable k3s-agent
-systemctl start k3s-agent
+# wait for server
+until curl -k $K3S_URL; do
+  sleep 10
+done
+
+# fetch token securely
+TOKEN=$(ssh -o StrictHostKeyChecking=no ubuntu@${aws_instance.k3s_server.private_ip} \
+  "sudo cat /var/lib/rancher/k3s/server/node-token")
+
+curl -sfL https://get.k3s.io | \
+  K3S_URL=$K3S_URL \
+  K3S_TOKEN=$TOKEN \
+  sh -
 EOF
 )
 
@@ -44,7 +49,7 @@ EOF
     resource_type = "instance"
 
     tags = {
-      Name    = "k3s-worker-node"
+      Name    = "k3s_worker"
       Role    = var.role
       Project = var.project
     }

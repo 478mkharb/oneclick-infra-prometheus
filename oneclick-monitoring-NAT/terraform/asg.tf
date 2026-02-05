@@ -1,9 +1,7 @@
-resource "aws_autoscaling_group" "monitoring_asg" {
-  name = "monitoring-asg"
-
+resource "aws_autoscaling_group" "k3s_workers" {
   desired_capacity = 2
+  max_size         = 3
   min_size         = 2
-  max_size         = 4
 
   vpc_zone_identifier = [
     aws_subnet.private_a.id,
@@ -11,14 +9,9 @@ resource "aws_autoscaling_group" "monitoring_asg" {
   ]
 
   launch_template {
-    id      = aws_launch_template.monitoring_lt.id
+    id      = aws_launch_template.k3s_worker_lt.id
     version = "$Latest"
   }
-
-  target_group_arns = [
-  aws_lb_target_group.grafana.arn,
-  aws_lb_target_group.prometheus.arn
-]
 
   tag {
     key                 = "Project"
