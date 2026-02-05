@@ -7,7 +7,6 @@ resource "aws_network_acl" "private_nacl" {
   }
 }
 
-# Associate with private subnets
 resource "aws_network_acl_association" "private_a" {
   subnet_id      = aws_subnet.private_a.id
   network_acl_id = aws_network_acl.private_nacl.id
@@ -18,14 +17,9 @@ resource "aws_network_acl_association" "private_b" {
   network_acl_id = aws_network_acl.private_nacl.id
 }
 
-# =========================
-# INBOUND RULES
-# =========================
-
-# REQUIRED: TCP ephemeral from anywhere (SSM, NAT replies)
 resource "aws_network_acl_rule" "inbound_ephemeral_tcp" {
   network_acl_id = aws_network_acl.private_nacl.id
-  rule_number    = 80
+  rule_number    = 70
   protocol       = "tcp"
   rule_action    = "allow"
   cidr_block     = "0.0.0.0/0"
@@ -33,10 +27,9 @@ resource "aws_network_acl_rule" "inbound_ephemeral_tcp" {
   to_port        = 65535
 }
 
-# REQUIRED: UDP ephemeral from anywhere (DNS + AWS services)
 resource "aws_network_acl_rule" "inbound_ephemeral_udp" {
   network_acl_id = aws_network_acl.private_nacl.id
-  rule_number    = 85
+  rule_number    = 75
   protocol       = "udp"
   rule_action    = "allow"
   cidr_block     = "0.0.0.0/0"
@@ -44,7 +37,6 @@ resource "aws_network_acl_rule" "inbound_ephemeral_udp" {
   to_port        = 65535
 }
 
-# Grafana
 resource "aws_network_acl_rule" "inbound_grafana" {
   network_acl_id = aws_network_acl.private_nacl.id
   rule_number    = 110
@@ -55,7 +47,6 @@ resource "aws_network_acl_rule" "inbound_grafana" {
   to_port        = 30000
 }
 
-# Prometheus
 resource "aws_network_acl_rule" "inbound_prometheus" {
   network_acl_id = aws_network_acl.private_nacl.id
   rule_number    = 120
@@ -66,11 +57,6 @@ resource "aws_network_acl_rule" "inbound_prometheus" {
   to_port        = 30090
 }
 
-# =========================
-# OUTBOUND RULES
-# =========================
-
-# REQUIRED: allow all outbound (NAT + SSM)
 resource "aws_network_acl_rule" "outbound_all" {
   network_acl_id = aws_network_acl.private_nacl.id
   rule_number    = 100
