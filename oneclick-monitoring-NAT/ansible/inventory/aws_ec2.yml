@@ -8,7 +8,7 @@ filters:
   tag:Project: oneclick-monitoring
 
 keyed_groups:
-  - key: tags.Role
+  - key: tags.Name
     prefix: ""
 
 hostnames:
