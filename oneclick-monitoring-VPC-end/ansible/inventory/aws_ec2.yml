@@ -1,0 +1,26 @@
+plugin: amazon.aws.aws_ec2
+
+regions:
+  - ap-south-1
+
+filters:
+  instance-state-name: running
+  tag:Project: oneclick-monitoring
+
+keyed_groups:
+  - key: tags.Role
+    prefix: ""
+
+hostnames:
+  - instance-id
+
+compose:
+  private_ip: private_ip_address
+  ansible_user: root
+  ansible_connection: amazon.aws.aws_ssm
+  ansible_shell_executable: "'/bin/bash'"
+
+vars:
+  ansible_connection: aws_ssm
+  ansible_shell_executable: /bin/bash
+  ansible_python_interpreter: /usr/bin/python3

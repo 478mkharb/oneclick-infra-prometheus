@@ -1,0 +1,20 @@
+# --- Connection ---
+ansible_connection: amazon.aws.aws_ssm
+ansible_user: ubuntu
+
+# --- Shell ---
+ansible_shell_type: sh
+ansible_shell_executable: /bin/bash
+
+# --- Environment ---
+ansible_env:
+  HOME: /home/ubuntu
+
+# --- AWS SSM settings ---
+ansible_aws_ssm_region: ap-south-1
+ansible_aws_ssm_timeout: 120
+ansible_aws_ssm_retries: 5
+
+# REQUIRED: S3 bucket for SSM IO
+ansible_aws_ssm_bucket_name: oneclick-terraform-state-036253061030
+ansible_aws_ssm_bucket_encryption: AES256

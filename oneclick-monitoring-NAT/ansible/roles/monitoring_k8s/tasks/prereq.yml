@@ -1,0 +1,61 @@
+---
+- name: Update apt cache (SSM safe)
+  become: true
+  shell: |
+    rm -f /var/lib/apt/lists/lock
+    rm -f /var/cache/apt/archives/lock
+    rm -f /var/lib/dpkg/lock*
+    dpkg --configure -a
+    apt-get update -y
+  args:
+    executable: /bin/bash
+
+
+- name: Install Kubernetes Python libraries (system-wide)
+  become: true
+  ansible.builtin.apt:
+    name:
+      - python3-kubernetes
+      - python3-yaml
+    state: present
+    update_cache: yes
+
+- name: Ensure k3s kubeconfig exists
+  become: true
+  stat:
+    path: /etc/rancher/k3s/k3s.yaml
+  register: k3s_kubeconfig
+
+- name: Fail if k3s kubeconfig missing
+  fail:
+    msg: "k3s kubeconfig not found at /etc/rancher/k3s/k3s.yaml"
+  when: not k3s_kubeconfig.stat.exists
+
+- name: Ensure /root/.kube exists
+  become: true
+  file:
+    path: /root/.kube
+    state: directory
+    mode: '0700'
+
+- name: Copy kubeconfig for root (FORCE overwrite)
+  become: true
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: /root/.kube/config
+    remote_src: true
+    owner: root
+    group: root
+    mode: '0600'
+    force: true
+
+- name: Replace localhost in kubeconfig
+  become: true
+  replace:
+    path: /root/.kube/config
+    regexp: 'https://127.0.0.1:6443'
+    replace: "https://{{ private_ip }}:6443"
+
+- name: Verify kubeconfig is readable
+  become: true
+  command: kubectl get nodes

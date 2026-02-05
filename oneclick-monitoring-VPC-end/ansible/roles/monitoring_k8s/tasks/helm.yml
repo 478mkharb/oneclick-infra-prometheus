@@ -1,0 +1,40 @@
+---
+# Ensure helm repo exists (run once)
+- name: Add Prometheus Helm repo
+  become: true
+  ansible.builtin.shell: |
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
+    helm repo update
+  args:
+    executable: /bin/bash
+
+
+# Create monitoring namespace via Kubernetes API
+- name: Create monitoring namespace
+  become: true
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: monitoring
+    state: present
+    kubeconfig: /root/.kube/config
+
+
+# Render values file for Prometheus + Grafana
+- name: Render kube-prometheus-stack values file
+  become: true
+  ansible.builtin.template:
+    src: values.yml.j2
+    dest: /tmp/kube-prometheus-values.yml
+    mode: "0644"
+
+
+# Install / Upgrade kube-prometheus-stack
+- name: Deploy kube-prometheus-stack with custom values
+  become: true
+  ansible.builtin.shell: |
+    helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+      --namespace monitoring \
+      -f /tmp/kube-prometheus-values.yml
+  args:
+    executable: /bin/bash

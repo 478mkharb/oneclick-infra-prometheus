@@ -1,0 +1,11 @@
+---
+# roles/monitoring_k8s/tasks/main.yml
+
+- name: Include prerequisite tasks
+  import_tasks: prereq.yml
+
+- name: Install Helm if missing
+  include_tasks: helm_install.yml
+  
+- name: Include Helm tasks
+  import_tasks: helm.yml

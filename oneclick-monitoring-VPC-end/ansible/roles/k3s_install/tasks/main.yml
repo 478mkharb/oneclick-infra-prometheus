@@ -1,0 +1,13 @@
+- name: Install and start k3s
+  become: true
+  ansible.builtin.shell: |
+    set -e
+
+    if [ ! -f /usr/local/bin/k3s ]; then
+      curl -sfL https://get.k3s.io | sh -
+    fi
+
+    systemctl enable k3s
+    systemctl start k3s
+  args:
+    executable: /bin/bash

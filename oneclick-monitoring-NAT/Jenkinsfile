@@ -1,0 +1,45 @@
+pipeline {
+  agent any
+
+  environment {
+    AWS_DEFAULT_REGION = 'ap-south-1'
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        git branch: 'mukesh',
+            url: 'https://github.com/478mkharb/Ansible.git'
+      }
+    }
+
+    stage('Terraform Init & Apply') {
+      steps {
+        dir('oneclick-monitoring-SSM/terraform') {
+          sh '''
+            terraform init
+            terraform apply -auto-approve
+          '''
+        }
+      }
+    }
+
+    stage('Wait for SSM') {
+      steps {
+        sh 'sleep 60'
+      }
+    }
+
+    stage('Run Ansible (SSM)') {
+      steps {
+        dir('oneclick-monitoring-SSM/ansible') {
+          sh '''
+            export PATH=$PATH:/var/lib/jenkins/.local/bin
+            ansible-playbook -i inventory/aws_ec2.yml site.yml
+          '''
+        }
+      }
+    }
+  }
+}

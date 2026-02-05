@@ -1,0 +1,18 @@
+galaxy_info:
+  role_name: monitoring
+  author: yourname
+  description: One-click Prometheus, Grafana, Alertmanager setup
+  license: MIT
+  min_ansible_version: "2.14"
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+
+    - name: EL
+      versions:
+        - "9"
+
+dependencies: []
