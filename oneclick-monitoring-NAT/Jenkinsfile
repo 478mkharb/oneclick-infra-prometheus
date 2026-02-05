@@ -33,7 +33,7 @@ pipeline {
 
     stage('Run Ansible (SSM)') {
       steps {
-        dir('oneclick-monitoring-SSM/ansible') {
+        dir('oneclick-monitoring-NAT/ansible') {
           sh '''
             export PATH=$PATH:/var/lib/jenkins/.local/bin
             ansible-playbook -i inventory/aws_ec2.yml site.yml
