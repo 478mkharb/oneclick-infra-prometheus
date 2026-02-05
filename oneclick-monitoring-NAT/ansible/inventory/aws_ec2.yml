@@ -8,19 +8,14 @@ filters:
   tag:Project: oneclick-monitoring
 
 keyed_groups:
-  - key: tags.Name
-    prefix: ""
+  - key: tags.Role
+    prefix: "_"
 
 hostnames:
   - instance-id
 
 compose:
-  private_ip: private_ip_address
   ansible_user: root
   ansible_connection: amazon.aws.aws_ssm
-  ansible_shell_executable: "'/bin/bash'"
-
-vars:
-  ansible_connection: aws_ssm
-  ansible_shell_executable: /bin/bash
   ansible_python_interpreter: /usr/bin/python3
+  ansible_shell_executable: /bin/bash
