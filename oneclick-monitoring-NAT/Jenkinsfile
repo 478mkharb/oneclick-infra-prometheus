@@ -10,7 +10,7 @@ pipeline {
     stage('Checkout') {
       steps {
         git branch: 'mukesh',
-            url: 'https://github.com/478mkharb/oneclick-infra-prometheus.git'
+            url: 'git@github.com:478mkharb/oneclick-infra-prometheus.git'
       }
     }
 
