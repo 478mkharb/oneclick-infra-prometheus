@@ -9,14 +9,12 @@ filters:
 
 keyed_groups:
   - key: tags.Role
-    prefix: ""
+    prefix: "_"
 
 hostnames:
   - instance-id
 
 compose:
-  ansible_host: instance-id
   ansible_user: root
   ansible_connection: amazon.aws.aws_ssm
-  ansible_shell_executable: /bin/bash
   ansible_python_interpreter: /usr/bin/python3
