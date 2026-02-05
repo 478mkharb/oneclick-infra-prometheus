@@ -8,8 +8,6 @@ filters:
   tag:Project: oneclick-monitoring
 
 keyed_groups:
-  - key: tags.Name
-    prefix: "_"
   - key: tags.Role
     prefix: ""
 
