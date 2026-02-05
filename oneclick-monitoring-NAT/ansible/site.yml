@@ -15,4 +15,4 @@
   
   roles:
     - k3s_install
-    - monitoring_k8s
+    - monitoring_k3s
