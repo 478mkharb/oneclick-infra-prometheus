@@ -62,9 +62,9 @@
   when: k3s_service_exists.rc == 0
 
 # --------------------------------------------
-# kubeconfig validation (ONLY if installed)
+# kubeconfig existence (ONLY if installed)
 # --------------------------------------------
-- name: Wait for k3s kubeconfig to be created
+- name: Wait for k3s kubeconfig file to exist
   become: true
   stat:
     path: "{{ kubeconfig_path }}"
@@ -94,7 +94,7 @@
     mode: '0700'
   when: k3s_service_exists.rc == 0
 
-- name: Copy kubeconfig for root (idempotent)
+- name: Copy kubeconfig for root
   become: true
   copy:
     src: "{{ kubeconfig_path }}"
@@ -106,7 +106,7 @@
     force: true
   when: k3s_service_exists.rc == 0
 
-- name: Replace localhost in kubeconfig (safe)
+- name: Replace localhost in kubeconfig
   become: true
   replace:
     path: /root/.kube/config
@@ -117,16 +117,27 @@
     - private_ip is defined
 
 # --------------------------------------------
-# Final verification (ONLY if installed)
+# HARD GATE: kubeconfig usability (CRITICAL)
 # --------------------------------------------
-- name: Verify kubeconfig access
+- name: Wait until kubeconfig is usable
   become: true
   command: kubectl get nodes
   environment:
     KUBECONFIG: /root/.kube/config
-  register: kubectl_check
-  retries: 5
+  register: kubectl_ready
+  retries: 15
   delay: 10
-  until: kubectl_check.rc == 0
+  until: kubectl_ready.rc == 0
   changed_when: false
   when: k3s_service_exists.rc == 0
+
+# --------------------------------------------
+# Expose readiness fact for downstream roles
+# --------------------------------------------
+- name: Mark Kubernetes API as ready
+  set_fact:
+    kubernetes_api_ready: true
+  when:
+    - k3s_service_exists.rc == 0
+    - kubectl_ready is defined
+    - kubectl_ready.rc == 0
