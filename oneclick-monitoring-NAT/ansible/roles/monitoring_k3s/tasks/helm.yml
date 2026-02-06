@@ -28,6 +28,12 @@
     dest: /tmp/kube-prometheus-values.yml
     mode: "0644"
 
+- name: Clean stuck helm release secrets
+  shell: |
+    kubectl delete secret -n monitoring \
+      $(kubectl get secret -n monitoring | awk '/helm.release.v1.monitoring/ {print $1}') \
+      --ignore-not-found
+  ignore_errors: true
 
 # Install / Upgrade kube-prometheus-stack
 - name: Deploy kube-prometheus-stack with custom values
