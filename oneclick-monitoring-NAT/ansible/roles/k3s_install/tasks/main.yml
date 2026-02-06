@@ -3,10 +3,12 @@
 # Install k3s SERVER (safe & idempotent)
 # ============================================
 
-- name: Download and install k3s server
+- name: Install k3s server with static token
   become: true
   shell: |
-    curl -sfL https://get.k3s.io | sh -
+    curl -sfL https://get.k3s.io | \
+      K3S_TOKEN="K1035f3cf75adf81852158d3e82540238bc62a4f8be152411b33d3990327d9a8f6e::server:4d3c3b6bd46e53d1dfa1d65283762b70" \
+      sh -
   args:
     executable: /bin/bash
   register: k3s_install
