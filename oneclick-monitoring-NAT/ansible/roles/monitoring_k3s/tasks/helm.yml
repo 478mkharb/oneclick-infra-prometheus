@@ -36,15 +36,13 @@
   ignore_errors: true
 
 # Install / Upgrade kube-prometheus-stack
-- name: Deploy kube-prometheus-stack with custom values
-  become: true
-  ansible.builtin.shell: |
-    helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
-      --namespace monitoring \
-      --create-namespace \
-      --wait \
-      --timeout 10m \
-      --atomic \
-      -f /tmp/kube-prometheus-values.yml
+- name: Install kube-prometheus-stack (first install)
+  command: >
+    helm upgrade --install monitoring
+    prometheus-community/kube-prometheus-stack
+    --namespace monitoring
+    --create-namespace
+    --timeout 30m
+    -f /tmp/kube-prometheus-values.yml
   args:
     executable: /bin/bash
