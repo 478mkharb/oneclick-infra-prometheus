@@ -60,6 +60,8 @@
     done
     echo "Helm lock did not clear in time"
     exit 1
+  when: helm_status.rc != 0
+
 
 # First install (no wait / no atomic)
 - name: Install kube-prometheus-stack (first install)
