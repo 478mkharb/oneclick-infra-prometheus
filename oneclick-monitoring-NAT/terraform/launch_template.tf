@@ -26,7 +26,7 @@ PRIVATE_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
 curl -sfL https://get.k3s.io | \
   K3S_URL=https://10.0.3.10:6443 \
   K3S_TOKEN=${var.k3s_token} \
-  K3S_NODE_IP=${PRIVATE_IP} \
+  K3S_NODE_IP=$PRIVATE_IP \
   sh -
 
 systemctl enable k3s-agent

@@ -48,9 +48,9 @@ PRIVATE_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
 echo "[K3S] Installing k3s server and assigning token"
 curl -sfL https://get.k3s.io | \
   --token=${var.k3s_token} \
-  --node-ip=${PRIVATE_IP} \
-  --advertise-address=${PRIVATE_IP} \
-  --tls-san=${PRIVATE_IP} \
+  --node-ip=$PRIVATE_IP \
+  --advertise-address=$PRIVATE_IP \
+  --tls-san=$PRIVATE_IP \
   --disable traefik" sh -
 
 echo "[K3S] Waiting for kubeconfig"
