@@ -46,6 +46,20 @@
   when: helm_status.rc != 0
   ignore_errors: true
 
+- name: Wait for helm lock to be fully cleared
+  become: true
+  shell: |
+    for i in {1..30}; do
+      LOCKS=$(kubectl get secrets -n monitoring \
+        | awk '/helm.release.v1.monitoring/ {print $1}')
+      if [ -z "$LOCKS" ]; then
+        exit 0
+      fi
+      echo "Helm lock still present, waiting..."
+      sleep 5
+    done
+    echo "Helm lock did not clear in time"
+    exit 1
 
 # First install (no wait / no atomic)
 - name: Install kube-prometheus-stack (first install)
