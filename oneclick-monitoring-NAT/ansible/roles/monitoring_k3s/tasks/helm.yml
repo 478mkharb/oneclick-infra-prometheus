@@ -63,6 +63,7 @@
 
 # Safe upgrade path (re-runs)
 - name: Upgrade kube-prometheus-stack (existing release)
+  become: true
   command: >
     helm upgrade monitoring
     prometheus-community/kube-prometheus-stack
