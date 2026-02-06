@@ -1,8 +1,8 @@
 resource "aws_autoscaling_group" "k3s_workers" {
   name = "k3s-workers-asg"
-  desired_capacity = 2
-  max_size         = 3
-  min_size         = 2
+  desired_capacity = 1
+  max_size         = 2
+  min_size         = 1
 
   vpc_zone_identifier = [
     aws_subnet.private_a.id,

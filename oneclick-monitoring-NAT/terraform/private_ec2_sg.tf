@@ -52,3 +52,42 @@ resource "aws_security_group_rule" "flannel_vxlan" {
   source_security_group_id = aws_security_group.private_ec2_sg.id
 }
 
+# k3s supervisor (REQUIRED)
+resource "aws_security_group_rule" "k3s_supervisor" {
+  type                     = "ingress"
+  from_port                = 6444
+  to_port                  = 6444
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.private_ec2_sg.id
+  source_security_group_id = aws_security_group.private_ec2_sg.id
+}
+
+# kubelet
+resource "aws_security_group_rule" "kubelet" {
+  type                     = "ingress"
+  from_port                = 10250
+  to_port                  = 10250
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.private_ec2_sg.id
+  source_security_group_id = aws_security_group.private_ec2_sg.id
+}
+
+# CoreDNS (UDP)
+resource "aws_security_group_rule" "dns_udp" {
+  type                     = "ingress"
+  from_port                = 53
+  to_port                  = 53
+  protocol                 = "udp"
+  security_group_id        = aws_security_group.private_ec2_sg.id
+  source_security_group_id = aws_security_group.private_ec2_sg.id
+}
+
+# CoreDNS (TCP)
+resource "aws_security_group_rule" "dns_tcp" {
+  type                     = "ingress"
+  from_port                = 53
+  to_port                  = 53
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.private_ec2_sg.id
+  source_security_group_id = aws_security_group.private_ec2_sg.id
+}
