@@ -16,10 +16,3 @@ resource "aws_lb_target_group" "grafana" {
     unhealthy_threshold = 2
   }
 }
-resource "aws_lb_target_group_attachment" "grafana_workers" {
-  for_each = toset(var.worker_instance_ids)
-
-  target_group_arn = aws_lb_target_group.grafana.arn
-  target_id        = each.value
-  port             = 32000
-}
