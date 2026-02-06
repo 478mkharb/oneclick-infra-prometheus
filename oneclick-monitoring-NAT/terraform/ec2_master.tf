@@ -1,12 +1,6 @@
 resource "aws_instance" "k3s_server" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.small"
- 
-  network_interface {
-    network_interface_id = aws_network_interface.k3s_server_eni.id
-    device_index         = 0
-  }
-
 
   iam_instance_profile = "ec2-ssm-profile"
 
@@ -67,4 +61,10 @@ EOF
     Role    = "k3s_server"
     Project = var.project
   }
+}
+
+resource "aws_network_interface_attachment" "k3s_server_attach" {
+  instance_id          = aws_instance.k3s_server.id
+  network_interface_id = aws_network_interface.k3s_server_eni.id
+  device_index         = 0
 }
