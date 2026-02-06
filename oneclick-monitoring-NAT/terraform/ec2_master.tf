@@ -43,23 +43,6 @@ fi
 
 systemctl enable amazon-ssm-agent || true
 systemctl restart amazon-ssm-agent || true
-
-PRIVATE_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
-echo "[K3S] Installing k3s server and assigning token"
-curl -sfL https://get.k3s.io | \
-  --token=${var.k3s_token} \
-  --node-ip=$PRIVATE_IP \
-  --advertise-address=$PRIVATE_IP \
-  --tls-san=$PRIVATE_IP \
-  --disable traefik" sh -
-
-echo "[K3S] Waiting for kubeconfig"
-for i in {1..30}; do
-  [ -f /etc/rancher/k3s/k3s.yaml ] && break
-  sleep 10
-done
-
-echo "[BOOT] k3s server bootstrap complete"
 EOF
 )
 
