@@ -40,4 +40,5 @@
       --timeout 10m \
       --atomic \
       -f /tmp/kube-prometheus-values.yml
-  executable: /bin/bash
+  args:
+    executable: /bin/bash
