@@ -1,143 +1,74 @@
 ---
-# ============================================
-# k3s prereq – safe for multiple runs (SSM)
-# ============================================
-
-- name: Set kubeconfig path
-  set_fact:
-    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
-
-# --------------------------------------------
-# APT safety (SSM-friendly)
-# --------------------------------------------
-- name: Update apt cache (SSM safe)
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
   become: true
-  shell: |
-    export DEBIAN_FRONTEND=noninteractive
-    systemctl stop unattended-upgrades || true
-    rm -f /var/lib/apt/lists/lock
-    rm -f /var/cache/apt/archives/lock
-    rm -f /var/lib/dpkg/lock*
-    dpkg --configure -a
-    apt-get update -y
-  args:
-    executable: /bin/bash
-  changed_when: false
 
-- name: Install Kubernetes Python libraries (system-wide)
-  become: true
+- name: Ensure python3 and pip are installed
   ansible.builtin.apt:
     name:
-      - python3-kubernetes
-      - python3-yaml
+      - python3
+      - python3-pip
     state: present
-    update_cache: false
-
-# --------------------------------------------
-# k3s detection (NO failure on first run)
-# --------------------------------------------
-- name: Check if k3s service exists
   become: true
-  shell: systemctl list-unit-files | grep -q '^k3s.service'
-  register: k3s_service_exists
-  failed_when: false
-  changed_when: false
 
-- name: Skip k3s prereq checks if k3s is not installed
-  debug:
-    msg: "k3s not installed yet – skipping kubeconfig and kubectl validation"
-  when: k3s_service_exists.rc != 0
-
-# --------------------------------------------
-# k3s service validation (ONLY if installed)
-# --------------------------------------------
-- name: Wait for k3s service to be active
+- name: Install Kubernetes Python library for Ansible
+  ansible.builtin.pip:
+    name:
+      - kubernetes
+      - openshift
+      - pyyaml
+    executable: pip3
   become: true
-  command: systemctl is-active k3s
-  register: k3s_status
-  retries: 20
-  delay: 15
-  until: k3s_status.stdout == "active"
-  changed_when: false
-  when: k3s_service_exists.rc == 0
 
-# --------------------------------------------
-# kubeconfig existence (ONLY if installed)
-# --------------------------------------------
-- name: Wait for k3s kubeconfig file to exist
-  become: true
+- name: Detect k3s kubeconfig
   stat:
-    path: "{{ kubeconfig_path }}"
-  register: kubeconfig_wait
-  retries: 20
-  delay: 15
-  until: kubeconfig_wait.stat.exists
-  when: k3s_service_exists.rc == 0
-
-- name: Fail if kubeconfig still missing
-  fail:
-    msg: "k3s kubeconfig not found at {{ kubeconfig_path }}"
-  when:
-    - k3s_service_exists.rc == 0
-    - not kubeconfig_wait.stat.exists
-
-# --------------------------------------------
-# Root kubeconfig setup (ONLY if installed)
-# --------------------------------------------
-- name: Ensure /root/.kube exists
+    path: /etc/rancher/k3s/k3s.yaml
+  register: k3s_kubeconfig
   become: true
+
+- name: Detect kubeadm kubeconfig
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubeadm_kubeconfig
+  become: true
+
+- name: Fail if no kubeconfig found
+  fail:
+    msg: >
+      Kubernetes kubeconfig not found.
+      Ensure Kubernetes (k3s or kubeadm) is installed before running monitoring role.
+  when:
+    - not k3s_kubeconfig.stat.exists
+    - not kubeadm_kubeconfig.stat.exists
+
+- name: Set kubeconfig source path
+  set_fact:
+    kubeconfig_src: >-
+      {{
+        '/etc/rancher/k3s/k3s.yaml'
+        if k3s_kubeconfig.stat.exists
+        else '/etc/kubernetes/admin.conf'
+      }}
+
+- name: Ensure root .kube directory exists
   file:
     path: /root/.kube
     state: directory
-    owner: root
-    group: root
     mode: '0700'
-  when: k3s_service_exists.rc == 0
+  become: true
 
 - name: Copy kubeconfig for root
-  become: true
   copy:
-    src: "{{ kubeconfig_path }}"
+    src: "{{ kubeconfig_src }}"
     dest: /root/.kube/config
     remote_src: true
-    owner: root
-    group: root
     mode: '0600'
-    force: true
-  when: k3s_service_exists.rc == 0
-
-- name: Replace localhost in kubeconfig
   become: true
+
+- name: Fix kubeconfig server address (non-localhost)
   replace:
     path: /root/.kube/config
     regexp: 'https://127.0.0.1:6443'
-    replace: "https://{{ private_ip }}:6443"
-  when:
-    - k3s_service_exists.rc == 0
-    - private_ip is defined
-
-# --------------------------------------------
-# HARD GATE: kubeconfig usability (CRITICAL)
-# --------------------------------------------
-- name: Wait until kubeconfig is usable
+    replace: "https://{{ ansible_default_ipv4.address }}:6443"
   become: true
-  command: kubectl get nodes
-  environment:
-    KUBECONFIG: /root/.kube/config
-  register: kubectl_ready
-  retries: 15
-  delay: 10
-  until: kubectl_ready.rc == 0
-  changed_when: false
-  when: k3s_service_exists.rc == 0
-
-# --------------------------------------------
-# Expose readiness fact for downstream roles
-# --------------------------------------------
-- name: Mark Kubernetes API as ready
-  set_fact:
-    kubernetes_api_ready: true
-  when:
-    - k3s_service_exists.rc == 0
-    - kubectl_ready is defined
-    - kubectl_ready.rc == 0

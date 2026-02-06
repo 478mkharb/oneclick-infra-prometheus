@@ -6,7 +6,6 @@
   changed_when: false
 
 - name: Download Helm install script
-  become: true
   get_url:
     url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
     dest: /tmp/get_helm.sh
@@ -14,7 +13,6 @@
   when: helm_check.rc != 0
 
 - name: Install Helm
-  become: true
   command: /tmp/get_helm.sh
   when: helm_check.rc != 0
- 
+  become: true
