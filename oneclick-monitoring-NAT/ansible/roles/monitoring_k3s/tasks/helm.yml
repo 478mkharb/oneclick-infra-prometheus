@@ -55,10 +55,10 @@
     --namespace monitoring
     --create-namespace
     --timeout 30m
+    --kubeconfig /root/.kube/config
     -f /tmp/kube-prometheus-values.yml
-  args:
-    executable: /bin/bash
   when: helm_status.rc != 0
+
 
 
 # Safe upgrade path (re-runs)
@@ -69,7 +69,7 @@
     --namespace monitoring
     --timeout 30m
     --wait
+    --kubeconfig /root/.kube/config
     -f /tmp/kube-prometheus-values.yml
-  args:
-    executable: /bin/bash
   when: helm_status.rc == 0
+
