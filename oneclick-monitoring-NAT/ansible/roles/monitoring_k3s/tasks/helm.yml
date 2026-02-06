@@ -28,14 +28,26 @@
     dest: /tmp/kube-prometheus-values.yml
     mode: "0644"
 
+
+# Check if helm release exists
+- name: Check monitoring helm release status
+  command: helm status monitoring -n monitoring
+  register: helm_status
+  failed_when: false
+  changed_when: false
+
+
+# Cleanup stuck helm secrets ONLY if release is broken
 - name: Clean stuck helm release secrets
   shell: |
     kubectl delete secret -n monitoring \
       $(kubectl get secret -n monitoring | awk '/helm.release.v1.monitoring/ {print $1}') \
       --ignore-not-found
+  when: helm_status.rc != 0
   ignore_errors: true
 
-# Install / Upgrade kube-prometheus-stack
+
+# First install (no wait / no atomic)
 - name: Install kube-prometheus-stack (first install)
   command: >
     helm upgrade --install monitoring
@@ -46,3 +58,18 @@
     -f /tmp/kube-prometheus-values.yml
   args:
     executable: /bin/bash
+  when: helm_status.rc != 0
+
+
+# Safe upgrade path (re-runs)
+- name: Upgrade kube-prometheus-stack (existing release)
+  command: >
+    helm upgrade monitoring
+    prometheus-community/kube-prometheus-stack
+    --namespace monitoring
+    --timeout 30m
+    --wait
+    -f /tmp/kube-prometheus-values.yml
+  args:
+    executable: /bin/bash
+  when: helm_status.rc == 0
