@@ -21,6 +21,9 @@
     executable: pip3
   become: true
 
+# --------------------------------------------
+# Detect kubeconfig paths
+# --------------------------------------------
 - name: Detect k3s kubeconfig
   stat:
     path: /etc/rancher/k3s/k3s.yaml
@@ -33,6 +36,24 @@
   register: kubeadm_kubeconfig
   become: true
 
+# --------------------------------------------
+# Wait if k3s exists but kubeconfig not ready
+# --------------------------------------------
+- name: Wait for k3s kubeconfig if k3s service exists
+  stat:
+    path: /etc/rancher/k3s/k3s.yaml
+  register: k3s_wait
+  retries: 15
+  delay: 10
+  until: k3s_wait.stat.exists
+  when:
+    - not kubeadm_kubeconfig.stat.exists
+    - k3s_kubeconfig.stat.exists or k3s_kubeconfig is defined
+  become: true
+
+# --------------------------------------------
+# Final failure check
+# --------------------------------------------
 - name: Fail if no kubeconfig found
   fail:
     msg: >
@@ -42,6 +63,9 @@
     - not k3s_kubeconfig.stat.exists
     - not kubeadm_kubeconfig.stat.exists
 
+# --------------------------------------------
+# Select kubeconfig source
+# --------------------------------------------
 - name: Set kubeconfig source path
   set_fact:
     kubeconfig_src: >-
@@ -51,6 +75,9 @@
         else '/etc/kubernetes/admin.conf'
       }}
 
+# --------------------------------------------
+# Root kubeconfig setup
+# --------------------------------------------
 - name: Ensure root .kube directory exists
   file:
     path: /root/.kube
@@ -66,9 +93,16 @@
     mode: '0600'
   become: true
 
-- name: Fix kubeconfig server address (non-localhost)
-  replace:
-    path: /root/.kube/config
-    regexp: 'https://127.0.0.1:6443'
-    replace: "https://{{ ansible_default_ipv4.address }}:6443"
+# --------------------------------------------
+# HARD GATE – kubeconfig usability
+# --------------------------------------------
+- name: Wait until kubeconfig is usable
+  command: kubectl get nodes
+  environment:
+    KUBECONFIG: /root/.kube/config
+  register: kubectl_ready
+  retries: 15
+  delay: 10
+  until: kubectl_ready.rc == 0
+  changed_when: false
   become: true
