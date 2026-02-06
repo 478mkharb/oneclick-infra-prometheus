@@ -14,34 +14,21 @@ resource "aws_launch_template" "k3s_worker_lt" {
   user_data = base64encode(<<EOF
 #!/bin/bash
 set -eux
-
 exec > /var/log/k3s-worker.log 2>&1
 
 apt-get update -y
-apt-get install -y curl iptables
+apt-get install -y curl
 
 iptables -P FORWARD ACCEPT
 sysctl -w net.ipv4.ip_forward=1
 
-snap install amazon-ssm-agent --classic || true
-systemctl enable amazon-ssm-agent
-systemctl start amazon-ssm-agent
-
-K3S_URL="https://${aws_instance.k3s_server.private_ip}:6443"
-
-# wait for server
-until curl -k $K3S_URL; do
-  sleep 10
-done
-
-# fetch token securely
-TOKEN=$(ssh -o StrictHostKeyChecking=no ubuntu@${aws_instance.k3s_server.private_ip} \
-  "sudo cat /var/lib/rancher/k3s/server/node-token")
-
 curl -sfL https://get.k3s.io | \
-  K3S_URL=$K3S_URL \
-  K3S_TOKEN=$TOKEN \
+  K3S_URL=https://${var.k3s_server_private_ip}:6443 \
+  K3S_TOKEN=${var.k3s_token} \
   sh -
+
+systemctl enable k3s-agent
+systemctl start k3s-agent
 EOF
 )
 

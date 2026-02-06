@@ -1,11 +1,12 @@
 resource "aws_instance" "k3s_server" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.small"
-  subnet_id     = aws_subnet.private_a.id
+ 
+  network_interface {
+    network_interface_id = aws_network_interface.k3s_server_eni.id
+    device_index         = 0
+  }
 
-  vpc_security_group_ids = [
-    aws_security_group.private_ec2_sg.id
-  ]
 
   iam_instance_profile = "ec2-ssm-profile"
 
@@ -45,8 +46,11 @@ fi
 systemctl enable amazon-ssm-agent || true
 systemctl restart amazon-ssm-agent || true
 
-echo "[K3S] Installing k3s server"
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik" sh -
+echo "[K3S] Installing k3s server and assigning token"
+curl -sfL https://get.k3s.io | \
+  K3S_TOKEN=${var.k3s_token} \
+  INSTALL_K3S_EXEC="--disable traefik" \
+  sh -
 
 echo "[K3S] Waiting for kubeconfig"
 for i in {1..30}; do
