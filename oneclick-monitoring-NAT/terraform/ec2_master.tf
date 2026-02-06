@@ -44,11 +44,14 @@ fi
 systemctl enable amazon-ssm-agent || true
 systemctl restart amazon-ssm-agent || true
 
+PRIVATE_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
 echo "[K3S] Installing k3s server and assigning token"
 curl -sfL https://get.k3s.io | \
-  K3S_TOKEN=${var.k3s_token} \
-  INSTALL_K3S_EXEC="--disable traefik" \
-  sh -
+  --token=${var.k3s_token} \
+  --node-ip=${PRIVATE_IP} \
+  --advertise-address=${PRIVATE_IP} \
+  --tls-san=${PRIVATE_IP} \
+  --disable traefik" sh -
 
 echo "[K3S] Waiting for kubeconfig"
 for i in {1..30}; do
