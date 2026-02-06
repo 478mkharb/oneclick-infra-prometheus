@@ -13,14 +13,13 @@ resource "aws_launch_template" "k3s_worker_lt" {
 
   user_data = base64encode(<<EOF
 #!/bin/bash
-set -eux
+set -ux
 exec > /var/log/k3s-worker.log 2>&1
+
+echo "[INFO] Starting k3s worker bootstrap"
 
 apt-get update -y
 apt-get install -y curl
-
-iptables -P FORWARD ACCEPT
-sysctl -w net.ipv4.ip_forward=1
 
 PRIVATE_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
 curl -sfL https://get.k3s.io | \
