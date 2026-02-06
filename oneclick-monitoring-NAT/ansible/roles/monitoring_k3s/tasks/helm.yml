@@ -38,7 +38,8 @@
 
 
 # Cleanup stuck helm secrets ONLY if release is broken
-- name: Clean stuck helm release secrets
+- name: Cleanup stuck helm secrets
+  become: true
   shell: |
     kubectl delete secret -n monitoring \
       $(kubectl get secret -n monitoring | awk '/helm.release.v1.monitoring/ {print $1}') \
@@ -46,21 +47,7 @@
   when: helm_status.rc != 0
   ignore_errors: true
 
-- name: Wait for helm lock to be fully cleared
-  become: true
-  shell: |
-    for i in {1..30}; do
-      LOCKS=$(kubectl get secrets -n monitoring \
-        | awk '/helm.release.v1.monitoring/ {print $1}')
-      if [ -z "$LOCKS" ]; then
-        exit 0
-      fi
-      echo "Helm lock still present, waiting..."
-      sleep 5
-    done
-    echo "Helm lock did not clear in time"
-    exit 1
-  when: helm_status.rc != 0
+
 
 
 # First install (no wait / no atomic)
