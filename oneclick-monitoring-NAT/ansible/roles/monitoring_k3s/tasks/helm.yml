@@ -49,6 +49,7 @@
 
 # First install (no wait / no atomic)
 - name: Install kube-prometheus-stack (first install)
+  become: true
   command: >
     helm upgrade --install monitoring
     prometheus-community/kube-prometheus-stack
