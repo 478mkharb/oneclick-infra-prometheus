@@ -35,6 +35,9 @@
   ansible.builtin.shell: |
     helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
       --namespace monitoring \
+      --create-namespace \
+      --wait \
+      --timeout 10m \
+      --atomic \
       -f /tmp/kube-prometheus-values.yml
-  args:
-    executable: /bin/bash
+  executable: /bin/bash
