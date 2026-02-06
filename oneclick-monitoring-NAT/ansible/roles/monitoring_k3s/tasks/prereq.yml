@@ -1,4 +1,15 @@
 ---
+# ============================================
+# k3s prereq – safe for multiple runs (SSM)
+# ============================================
+
+- name: Set kubeconfig path
+  set_fact:
+    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
+
+# --------------------------------------------
+# APT safety (SSM-friendly)
+# --------------------------------------------
 - name: Update apt cache (SSM safe)
   become: true
   shell: |
@@ -11,6 +22,7 @@
     apt-get update -y
   args:
     executable: /bin/bash
+  changed_when: false
 
 - name: Install Kubernetes Python libraries (system-wide)
   become: true
@@ -19,42 +31,65 @@
       - python3-kubernetes
       - python3-yaml
     state: present
-    update_cache: yes
+    update_cache: false
 
-- name: Ensure k3s kubeconfig exists
+# --------------------------------------------
+# k3s service validation (NO reinstall)
+# --------------------------------------------
+- name: Check if k3s service exists
+  become: true
+  shell: systemctl list-unit-files | grep -q '^k3s.service'
+  register: k3s_service_exists
+  failed_when: false
+  changed_when: false
+
+- name: Fail if k3s is not installed
+  fail:
+    msg: "k3s service not found. Install k3s before running prereq role."
+  when: k3s_service_exists.rc != 0
+
+- name: Wait for k3s service to be active
+  become: true
+  command: systemctl is-active k3s
+  register: k3s_status
+  retries: 20
+  delay: 15
+  until: k3s_status.stdout == "active"
+  changed_when: false
+
+# --------------------------------------------
+# kubeconfig validation (retry-based, SSM-safe)
+# --------------------------------------------
+- name: Wait for k3s kubeconfig to be created
   become: true
   stat:
-    path: /etc/rancher/k3s/k3s.yaml
-  register: k3s_kubeconfig
-
-- name: Wait for k3s kubeconfig
-  become: true
-  wait_for:
     path: "{{ kubeconfig_path }}"
-    timeout: 300
-    state: present
+  register: kubeconfig_wait
+  retries: 20
+  delay: 15
+  until: kubeconfig_wait.stat.exists
 
-- name: Verify k3s kubeconfig exists
-  stat:
-    path: "{{ kubeconfig_path }}"
-  register: kubeconfig
-
-- name: Fail if k3s kubeconfig missing
+- name: Fail if kubeconfig still missing
   fail:
     msg: "k3s kubeconfig not found at {{ kubeconfig_path }}"
-  when: not kubeconfig.stat.exists
+  when: not kubeconfig_wait.stat.exists
 
+# --------------------------------------------
+# Root kubeconfig setup (idempotent)
+# --------------------------------------------
 - name: Ensure /root/.kube exists
   become: true
   file:
     path: /root/.kube
     state: directory
+    owner: root
+    group: root
     mode: '0700'
 
-- name: Copy kubeconfig for root (FORCE overwrite)
+- name: Copy kubeconfig for root (idempotent)
   become: true
   copy:
-    src: /etc/rancher/k3s/k3s.yaml
+    src: "{{ kubeconfig_path }}"
     dest: /root/.kube/config
     remote_src: true
     owner: root
@@ -62,15 +97,24 @@
     mode: '0600'
     force: true
 
-- name: Replace localhost in kubeconfig
+- name: Replace localhost in kubeconfig (safe)
   become: true
   replace:
     path: /root/.kube/config
     regexp: 'https://127.0.0.1:6443'
     replace: "https://{{ private_ip }}:6443"
+  when: private_ip is defined
 
-- name: Verify kubeconfig is readable
+# --------------------------------------------
+# Final verification (non-fatal on reruns)
+# --------------------------------------------
+- name: Verify kubeconfig access
   become: true
   command: kubectl get nodes
   environment:
     KUBECONFIG: /root/.kube/config
+  register: kubectl_check
+  retries: 5
+  delay: 10
+  until: kubectl_check.rc == 0
+  changed_when: false
