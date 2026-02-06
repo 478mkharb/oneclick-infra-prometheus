@@ -2,7 +2,8 @@ resource "aws_instance" "k3s_server" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.small"
   iam_instance_profile = "ec2-ssm-profile"
-
+  primary_network_interface_id = aws_network_interface.k3s_server_eni.id
+    
  user_data = base64encode(<<EOF
 #!/bin/bash
 set -ux
