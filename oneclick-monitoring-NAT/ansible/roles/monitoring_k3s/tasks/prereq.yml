@@ -34,7 +34,7 @@
     update_cache: false
 
 # --------------------------------------------
-# k3s service validation (NO reinstall)
+# k3s detection (NO failure on first run)
 # --------------------------------------------
 - name: Check if k3s service exists
   become: true
@@ -43,11 +43,14 @@
   failed_when: false
   changed_when: false
 
-- name: Fail if k3s is not installed
-  fail:
-    msg: "k3s service not found. Install k3s before running prereq role."
+- name: Skip k3s prereq checks if k3s is not installed
+  debug:
+    msg: "k3s not installed yet – skipping kubeconfig and kubectl validation"
   when: k3s_service_exists.rc != 0
 
+# --------------------------------------------
+# k3s service validation (ONLY if installed)
+# --------------------------------------------
 - name: Wait for k3s service to be active
   become: true
   command: systemctl is-active k3s
@@ -56,9 +59,10 @@
   delay: 15
   until: k3s_status.stdout == "active"
   changed_when: false
+  when: k3s_service_exists.rc == 0
 
 # --------------------------------------------
-# kubeconfig validation (retry-based, SSM-safe)
+# kubeconfig validation (ONLY if installed)
 # --------------------------------------------
 - name: Wait for k3s kubeconfig to be created
   become: true
@@ -68,14 +72,17 @@
   retries: 20
   delay: 15
   until: kubeconfig_wait.stat.exists
+  when: k3s_service_exists.rc == 0
 
 - name: Fail if kubeconfig still missing
   fail:
     msg: "k3s kubeconfig not found at {{ kubeconfig_path }}"
-  when: not kubeconfig_wait.stat.exists
+  when:
+    - k3s_service_exists.rc == 0
+    - not kubeconfig_wait.stat.exists
 
 # --------------------------------------------
-# Root kubeconfig setup (idempotent)
+# Root kubeconfig setup (ONLY if installed)
 # --------------------------------------------
 - name: Ensure /root/.kube exists
   become: true
@@ -85,6 +92,7 @@
     owner: root
     group: root
     mode: '0700'
+  when: k3s_service_exists.rc == 0
 
 - name: Copy kubeconfig for root (idempotent)
   become: true
@@ -96,6 +104,7 @@
     group: root
     mode: '0600'
     force: true
+  when: k3s_service_exists.rc == 0
 
 - name: Replace localhost in kubeconfig (safe)
   become: true
@@ -103,10 +112,12 @@
     path: /root/.kube/config
     regexp: 'https://127.0.0.1:6443'
     replace: "https://{{ private_ip }}:6443"
-  when: private_ip is defined
+  when:
+    - k3s_service_exists.rc == 0
+    - private_ip is defined
 
 # --------------------------------------------
-# Final verification (non-fatal on reruns)
+# Final verification (ONLY if installed)
 # --------------------------------------------
 - name: Verify kubeconfig access
   become: true
@@ -118,3 +129,4 @@
   delay: 10
   until: kubectl_check.rc == 0
   changed_when: false
+  when: k3s_service_exists.rc == 0
