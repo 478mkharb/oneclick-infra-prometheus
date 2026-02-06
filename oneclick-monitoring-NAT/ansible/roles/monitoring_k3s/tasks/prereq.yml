@@ -1,4 +1,3 @@
----
 - name: Update apt cache (SSM safe)
   become: true
   shell: |
@@ -14,18 +13,12 @@
 
 - name: Install Kubernetes Python libraries (system-wide)
   become: true
-  ansible.builtin.apt:
+  apt:
     name:
       - python3-kubernetes
       - python3-yaml
     state: present
     update_cache: yes
-
-- name: Ensure k3s kubeconfig exists
-  become: true
-  stat:
-    path: /etc/rancher/k3s/k3s.yaml
-  register: k3s_kubeconfig
 
 - name: Wait for k3s kubeconfig
   become: true
@@ -34,16 +27,6 @@
     timeout: 300
     state: present
 
-- name: Verify k3s kubeconfig exists
-  stat:
-    path: "{{ kubeconfig_path }}"
-  register: kubeconfig
-
-- name: Fail if k3s kubeconfig missing
-  fail:
-    msg: "k3s kubeconfig not found at {{ kubeconfig_path }}"
-  when: not kubeconfig.stat.exists
-
 - name: Ensure /root/.kube exists
   become: true
   file:
@@ -51,7 +34,7 @@
     state: directory
     mode: '0700'
 
-- name: Copy kubeconfig for root (FORCE overwrite)
+- name: Copy kubeconfig for root
   become: true
   copy:
     src: /etc/rancher/k3s/k3s.yaml
@@ -72,3 +55,5 @@
 - name: Verify kubeconfig is readable
   become: true
   command: kubectl get nodes
+  environment:
+    KUBECONFIG: /root/.kube/config
