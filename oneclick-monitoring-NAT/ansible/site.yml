@@ -14,5 +14,6 @@
       command: whoami
   
   roles:
-    - monitoring_k3s
     - k3s_install
+    - monitoring_k3s
+    
