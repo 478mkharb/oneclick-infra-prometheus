@@ -1,3 +1,4 @@
+
 resource "aws_lb_target_group" "prometheus" {
   name        = "prometheus-tg"
   port        = 32090
@@ -15,4 +16,12 @@ resource "aws_lb_target_group" "prometheus" {
     healthy_threshold   = 2
     unhealthy_threshold = 2
   }
+}
+
+resource "aws_lb_target_group_attachment" "prometheus_workers" {
+  for_each = toset(var.worker_instance_ids)
+
+  target_group_arn = aws_lb_target_group.prometheus.arn
+  target_id        = each.value
+  port             = 32090
 }

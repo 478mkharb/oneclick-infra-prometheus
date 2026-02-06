@@ -23,3 +23,7 @@ variable "k3s_token" {
   type        = string
   sensitive   = true
 }
+variable "worker_instance_ids" {
+  type        = list(string)
+  description = "List of worker instance IDs to attach to the target group"
+}
