@@ -23,7 +23,7 @@ iptables -P FORWARD ACCEPT
 sysctl -w net.ipv4.ip_forward=1
 
 curl -sfL https://get.k3s.io | \
-  K3S_URL=https://${var.k3s_server_private_ip}:6443 \
+  K3S_URL=https://10.0.1.10:6443 \
   K3S_TOKEN=${var.k3s_token} \
   sh -
 
