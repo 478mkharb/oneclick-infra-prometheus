@@ -1,0 +1,105 @@
+---
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+
+- name: Ensure python3 and pip are installed
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-pip
+    state: present
+  become: true
+
+- name: Install Kubernetes Python library for Ansible
+  ansible.builtin.pip:
+    name:
+      - kubernetes
+      - openshift
+      - pyyaml
+    executable: pip3
+  become: true
+
+# Detect kubeconfig paths
+
+- name: Detect k3s kubeconfig
+  stat:
+    path: /etc/rancher/k3s/k3s.yaml
+  register: k3s_kubeconfig
+  become: true
+
+- name: Detect kubeadm kubeconfig
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubeadm_kubeconfig
+  become: true
+
+# Wait if k3s exists but kubeconfig not ready
+
+- name: Wait for k3s kubeconfig if k3s service exists
+  stat:
+    path: /etc/rancher/k3s/k3s.yaml
+  register: k3s_wait
+  retries: 15
+  delay: 10
+  until: k3s_wait.stat.exists
+  when:
+    - not kubeadm_kubeconfig.stat.exists
+    - k3s_kubeconfig.stat.exists or k3s_kubeconfig is defined
+  become: true
+
+
+# Final failure check
+
+- name: Fail if no kubeconfig found
+  fail:
+    msg: >
+      Kubernetes kubeconfig not found.
+      Ensure Kubernetes (k3s or kubeadm) is installed before running monitoring role.
+  when:
+    - not k3s_kubeconfig.stat.exists
+    - not kubeadm_kubeconfig.stat.exists
+
+
+# Select kubeconfig source
+
+- name: Set kubeconfig source path
+  set_fact:
+    kubeconfig_src: >-
+      {{
+        '/etc/rancher/k3s/k3s.yaml'
+        if k3s_kubeconfig.stat.exists
+        else '/etc/kubernetes/admin.conf'
+      }}
+
+
+# Root kubeconfig setup
+
+- name: Ensure root .kube directory exists
+  file:
+    path: /root/.kube
+    state: directory
+    mode: '0700'
+  become: true
+
+- name: Copy kubeconfig for root
+  copy:
+    src: "{{ kubeconfig_src }}"
+    dest: /root/.kube/config
+    remote_src: true
+    mode: '0600'
+  become: true
+
+# HARD GATE – kubeconfig usability
+
+- name: Wait until kubeconfig is usable
+  command: kubectl get nodes
+  environment:
+    KUBECONFIG: /root/.kube/config
+  register: kubectl_ready
+  retries: 15
+  delay: 10
+  until: kubectl_ready.rc == 0
+  changed_when: false
+  become: true

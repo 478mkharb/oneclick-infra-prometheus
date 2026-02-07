@@ -1,0 +1,5 @@
+instance_type_monitoring = "t3.small"
+project                  = "oneclick-monitoring"
+role                     = "worker-node"
+k3s_server_private_ip    = "10.0.3.10"
+k3s_token                = "k3s-static-token-2026"

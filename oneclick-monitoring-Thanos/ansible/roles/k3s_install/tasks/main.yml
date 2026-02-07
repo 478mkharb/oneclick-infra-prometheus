@@ -1,0 +1,61 @@
+---
+# ============================================
+# Install k3s SERVER (safe & idempotent)
+# ============================================
+
+- name: Install k3s server with static token
+  become: true
+  shell: |
+    curl -sfL https://get.k3s.io | \
+      K3S_TOKEN="k3s-static-token-2026" \
+      sh -
+  args:
+    executable: /bin/bash
+  register: k3s_install
+  changed_when: "'installed' in k3s_install.stdout or k3s_install.rc == 0"
+
+# --------------------------------------------
+# Validate systemd unit exists
+# --------------------------------------------
+- name: Verify k3s systemd unit exists
+  become: true
+  shell: systemctl list-unit-files | grep -q '^k3s.service'
+  register: k3s_unit
+  failed_when: k3s_unit.rc != 0
+  changed_when: false
+
+# --------------------------------------------
+# Ensure k3s service is enabled and running
+# --------------------------------------------
+- name: Enable and start k3s service
+  become: true
+  systemd:
+    name: k3s
+    enabled: true
+    state: started
+
+# --------------------------------------------
+# Wait for kubeconfig (retry-based, SSM-safe)
+# --------------------------------------------
+- name: Wait for k3s kubeconfig
+  become: true
+  stat:
+    path: /etc/rancher/k3s/k3s.yaml
+  register: kubeconfig_wait
+  retries: 20
+  delay: 15
+  until: kubeconfig_wait.stat.exists
+
+# --------------------------------------------
+# HARD GATE: Kubernetes API readiness
+# --------------------------------------------
+- name: Wait until Kubernetes API is ready
+  become: true
+  command: kubectl get nodes
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: kubectl_ready
+  retries: 20
+  delay: 15
+  until: kubectl_ready.rc == 0
+  changed_when: false

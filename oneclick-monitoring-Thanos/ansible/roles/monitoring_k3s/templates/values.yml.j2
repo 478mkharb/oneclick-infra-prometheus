@@ -1,0 +1,93 @@
+# -----------------------------
+# Grafana (secondary, simple)
+# -----------------------------
+grafana:
+  enabled: true
+
+  adminUser: admin
+  adminPassword: admin
+
+  service:
+    type: NodePort
+    port: 80
+    targetPort: 3000
+    nodePort: 32000
+
+
+# -----------------------------
+# Prometheus (PRIMARY TOOL)
+# -----------------------------
+prometheus:
+  enabled: true
+
+  # IMPORTANT:
+  # Do NOT expose Prometheus directly
+  service:
+    enabled: false
+
+  prometheusSpec:
+    # HA starts here
+    replicas: 2
+
+    retention: 10d
+
+    resources:
+      requests:
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+
+    # Each replica gets its own PVC
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 50Gi
+
+    # Thanos Sidecar (REAL HA)
+    thanos:
+      objectStorageConfig:
+        name: thanos-objstore
+        key: objstore.yml
+
+
+# -----------------------------
+# Thanos Query (Prometheus HA UI)
+# -----------------------------
+thanosQuery:
+  enabled: true
+  replicaCount: 1
+
+  service:
+    type: NodePort
+    port: 9090
+    targetPort: 9090
+    nodePort: 30900
+
+
+# -----------------------------
+# Node Exporter
+# -----------------------------
+prometheus-node-exporter:
+  enabled: true
+
+  tolerations:
+    - operator: Exists   # run on all nodes (server + workers)
+
+
+# -----------------------------
+# kube-state-metrics
+# -----------------------------
+kube-state-metrics:
+  enabled: true
+
+
+# -----------------------------
+# Alertmanager (disabled for simplicity)
+# -----------------------------
+alertmanager:
+  enabled: false

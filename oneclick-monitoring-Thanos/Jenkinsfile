@@ -1,0 +1,47 @@
+pipeline {
+  agent any
+
+  environment {
+    AWS_DEFAULT_REGION = 'ap-south-1'
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        git branch: 'mukesh',
+            url: 'git@github.com:478mkharb/oneclick-infra-prometheus.git'
+      }
+    }
+
+    stage('Terraform Init & Apply') {
+      steps {
+        dir('oneclick-monitoring-NAT/terraform') {
+          sh '''
+            terraform init
+            terraform apply -auto-approve
+          '''
+        }
+      }
+    }
+
+    stage('Wait for SSM') {
+      steps {
+        sh 'sleep 10'
+      }
+    }
+
+    stage('Run Ansible (SSM)') {
+      steps {
+        dir('oneclick-monitoring-NAT/ansible') {
+          sh '''
+            export PATH=$PATH:/var/lib/jenkins/.local/bin
+            export ANSIBLE_CONFIG=$WORKSPACE/ansible/ansible.cfg
+            ansible-galaxy collection install amazon.aws --force
+            ansible-playbook -i inventory/aws_ec2.yml site.yml -vvv
+          '''
+        }
+      }
+    }
+  }
+}
