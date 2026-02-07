@@ -35,3 +35,27 @@
   args:
     executable: /bin/bash
   become: true
+
+- name: Add Bitnami Helm repo (for Thanos)
+  shell: |
+    helm repo add bitnami https://charts.bitnami.com/bitnami || true
+    helm repo update
+  args:
+    executable: /bin/bash
+  become: true
+
+- name: Render Thanos Query values file
+  ansible.builtin.template:
+    src: thanos-query-values.yml.j2
+    dest: /tmp/thanos-query-values.yml
+    mode: "0644"
+  become: true
+
+- name: Deploy Thanos Query
+  ansible.builtin.shell: |
+    helm upgrade --install thanos-query bitnami/thanos \
+      --namespace monitoring \
+      -f /tmp/thanos-query-values.yml
+  args:
+    executable: /bin/bash
+  become: true
