@@ -19,7 +19,17 @@ resource "aws_network_acl_association" "private_b" {
 
 resource "aws_network_acl_rule" "inbound_ephemeral_tcp" {
   network_acl_id = aws_network_acl.private_nacl.id
-  rule_number    = 70
+  rule_number    = 85
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 9100
+  to_port        = 9100
+}
+
+resource "aws_network_acl_rule" "inbound_ephemeral_tcp" {
+  network_acl_id = aws_network_acl.private_nacl.id
+  rule_number    = 90
   protocol       = "tcp"
   rule_action    = "allow"
   cidr_block     = "0.0.0.0/0"
@@ -29,7 +39,7 @@ resource "aws_network_acl_rule" "inbound_ephemeral_tcp" {
 
 resource "aws_network_acl_rule" "inbound_ephemeral_udp" {
   network_acl_id = aws_network_acl.private_nacl.id
-  rule_number    = 75
+  rule_number    = 95
   protocol       = "udp"
   rule_action    = "allow"
   cidr_block     = "0.0.0.0/0"
@@ -39,7 +49,7 @@ resource "aws_network_acl_rule" "inbound_ephemeral_udp" {
 
 resource "aws_network_acl_rule" "inbound_grafana" {
   network_acl_id = aws_network_acl.private_nacl.id
-  rule_number    = 110
+  rule_number    = 100
   protocol       = "tcp"
   rule_action    = "allow"
   cidr_block     = aws_vpc.this.cidr_block
@@ -49,7 +59,7 @@ resource "aws_network_acl_rule" "inbound_grafana" {
 
 resource "aws_network_acl_rule" "inbound_prometheus" {
   network_acl_id = aws_network_acl.private_nacl.id
-  rule_number    = 120
+  rule_number    = 110
   protocol       = "tcp"
   rule_action    = "allow"
   cidr_block     = aws_vpc.this.cidr_block
@@ -59,7 +69,7 @@ resource "aws_network_acl_rule" "inbound_prometheus" {
 
 resource "aws_network_acl_rule" "outbound_all" {
   network_acl_id = aws_network_acl.private_nacl.id
-  rule_number    = 100
+  rule_number    = 1200
   egress         = true
   protocol       = "-1"
   rule_action    = "allow"
