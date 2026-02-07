@@ -17,10 +17,19 @@
     kubeconfig: /root/.kube/config
   become: true
 
+# Render values file for Prometheus + Grafana
+- name: Render kube-prometheus-stack values file
+  become: true
+  ansible.builtin.template:
+    src: values.yml.j2
+    dest: /tmp/kube-prometheus-values.yml
+    mode: "0644"
+
 - name: Deploy Prometheus (lightweight, no alertmanager)
   shell: |
     helm upgrade --install prometheus prometheus-community/prometheus \
       --namespace monitoring \
+      -f /tmp/kube-prometheus-values.yml \
       --set alertmanager.enabled=false \
       --set pushgateway.enabled=false \
       --set server.resources.requests.memory=256Mi \
@@ -34,12 +43,14 @@
   shell: |
     helm upgrade --install grafana grafana/grafana \
       --namespace monitoring \
+      -f /tmp/kube-prometheus-values.yml \
       --set adminUser=admin \
       --set adminPassword=admin \
-      --set service.type=ClusterIP \
       --set resources.requests.memory=128Mi \
       --set resources.limits.memory=256Mi \
       --set persistence.enabled=false
   args:
     executable: /bin/bash
   become: true
+
+
