@@ -1,6 +1,3 @@
-# =====================
-# Grafana
-# =====================
 grafana:
   enabled: true
   adminUser: admin
@@ -13,9 +10,6 @@ grafana:
     nodePort: 32000
 
 
-# =====================
-# Prometheus
-# =====================
 prometheus:
   service:
     type: NodePort
@@ -28,29 +22,20 @@ prometheus:
 
     resources:
       requests:
-        cpu: 200m
         memory: 512Mi
       limits:
-        cpu: 500m
         memory: 1Gi
 
 
-# =====================
-# Node Exporter
-# =====================
 prometheus-node-exporter:
   enabled: true
+  tolerations:
+    - operator: Exists   # allows running on ALL nodes
 
 
-# =====================
-# kube-state-metrics
-# =====================
 kube-state-metrics:
   enabled: true
 
 
-# =====================
-# Alertmanager
-# =====================
 alertmanager:
   enabled: false
