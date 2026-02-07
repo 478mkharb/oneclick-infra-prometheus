@@ -16,7 +16,7 @@ pipeline {
 
     stage('Terraform Init & Apply') {
       steps {
-        dir('oneclick-monitoring-NAT/terraform') {
+        dir('oneclick-monitoring-Thanos/terraform') {
           sh '''
             terraform init
             terraform apply -auto-approve
@@ -33,7 +33,7 @@ pipeline {
 
     stage('Run Ansible (SSM)') {
       steps {
-        dir('oneclick-monitoring-NAT/ansible') {
+        dir('oneclick-monitoring-Thanos/ansible') {
           sh '''
             export PATH=$PATH:/var/lib/jenkins/.local/bin
             export ANSIBLE_CONFIG=$WORKSPACE/ansible/ansible.cfg

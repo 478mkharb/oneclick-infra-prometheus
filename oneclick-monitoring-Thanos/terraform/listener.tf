@@ -9,13 +9,18 @@ resource "aws_lb_listener" "http_grafana" {
   }
 }
 
-resource "aws_lb_listener" "http_thanos" {
-  load_balancer_arn = aws_lb.monitoring.arn
-  port              = 9090
-  protocol          = "HTTP"
+resource "aws_lb_listener_rule" "thanos" {
+  listener_arn = aws_lb_listener.http_grafana.arn
+  priority     = 1
 
-  default_action {
+  action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.thanos.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/thanos", "/thanos/*"]
+    }
   }
 }
