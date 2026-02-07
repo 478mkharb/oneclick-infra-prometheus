@@ -89,7 +89,7 @@ resource "aws_network_acl_rule" "inbound_prometheus" {
 # Allow all outbound traffic (required for stateless NACLs)
 resource "aws_network_acl_rule" "outbound_all" {
   network_acl_id = aws_network_acl.private_nacl.id
-  rule_number    = 1200
+  rule_number    = 100
   egress         = true
   protocol       = "-1"
   rule_action    = "allow"
