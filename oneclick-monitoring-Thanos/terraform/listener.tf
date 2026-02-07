@@ -11,7 +11,7 @@ resource "aws_lb_listener" "http_grafana" {
 
 resource "aws_lb_listener_rule" "thanos" {
   listener_arn = aws_lb_listener.http_grafana.arn
-  priority     = 20
+  priority     = 1
 
   action {
     type             = "forward"
