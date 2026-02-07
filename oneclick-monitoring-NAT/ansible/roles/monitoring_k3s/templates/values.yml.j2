@@ -6,28 +6,11 @@ grafana:
   adminUser: admin
   adminPassword: admin
 
-  nodeSelector:
-    node-role.kubernetes.io/worker: "true"
-
   service:
     type: NodePort
     port: 80
     targetPort: 3000
     nodePort: 32000
-
-
-# =====================
-# Prometheus Operator
-# =====================
-prometheusOperator:
-  enabled: true
-  createCustomResource: true
-
-  nodeSelector:
-    node-role.kubernetes.io/worker: "true"
-
-  service:
-    type: ClusterIP
 
 
 # =====================
@@ -41,10 +24,6 @@ prometheus:
     nodePort: 32090
 
   prometheusSpec:
-    nodeSelector:
-      node-role.kubernetes.io/worker: "true"
-
-    serviceMonitorSelectorNilUsesHelmValues: false
     retention: 10d
 
     resources:
@@ -69,16 +48,9 @@ prometheus-node-exporter:
 kube-state-metrics:
   enabled: true
 
-  nodeSelector:
-    node-role.kubernetes.io/worker: "true"
-
 
 # =====================
 # Alertmanager
 # =====================
 alertmanager:
-  alertmanagerSpec:
-    replicas: 1
-
-    nodeSelector:
-      node-role.kubernetes.io/worker: "true"
+  enabled: false
