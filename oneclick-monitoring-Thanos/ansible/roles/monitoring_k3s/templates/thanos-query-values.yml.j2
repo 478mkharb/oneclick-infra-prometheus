@@ -17,9 +17,11 @@ query:
     sidecarsService: monitoring-kube-prometheus-prometheus
     sidecarsNamespace: monitoring
 
-service:
-  type: NodePort
-  ports:
-    http: 9090
-  nodePorts:
-    http: 30900
+queryFrontend:
+  enabled: true
+  service:
+    type: NodePort
+    ports:
+      http: 9090
+    nodePorts:
+      http: 30900
