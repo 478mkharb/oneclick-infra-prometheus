@@ -1,5 +1,5 @@
 # -----------------------------
-# Grafana (secondary, simple)
+# Grafana (secondary UI)
 # -----------------------------
 grafana:
   enabled: true
@@ -20,7 +20,6 @@ grafana:
 prometheus:
   enabled: true
 
-  # IMPORTANT:
   # Do NOT expose Prometheus directly
   service:
     enabled: false
@@ -48,15 +47,19 @@ prometheus:
             requests:
               storage: 50Gi
 
-    # Thanos Sidecar (REAL HA)
+    # -----------------------------
+    # Thanos Sidecar (REQUIRED)
+    # -----------------------------
     thanos:
+      enabled: true
+
       objectStorageConfig:
         name: thanos-objstore
         key: objstore.yml
 
 
 # -----------------------------
-# Thanos Query (Prometheus HA UI)
+# Thanos Query (HA Prometheus UI)
 # -----------------------------
 thanosQuery:
   enabled: true
@@ -76,7 +79,7 @@ prometheus-node-exporter:
   enabled: true
 
   tolerations:
-    - operator: Exists   # run on all nodes (server + workers)
+    - operator: Exists   # run on all nodes
 
 
 # -----------------------------
@@ -87,7 +90,7 @@ kube-state-metrics:
 
 
 # -----------------------------
-# Alertmanager (disabled for simplicity)
+# Alertmanager (disabled)
 # -----------------------------
 alertmanager:
   enabled: false
