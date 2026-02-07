@@ -6,12 +6,12 @@ resource "aws_lb_target_group" "thanos" {
   target_type = "instance"
 
   health_check {
-    protocol = "HTTP"
-    port     = "30900"
-    path     = "/"
-    matcher  = "200-399"
-    interval = 30
-    timeout  = 5
+    protocol            = "HTTP"
+    port                = "30900"
+    path                = "/-/ready"
+    matcher             = "200"
+    interval            = 30
+    timeout             = 5
     healthy_threshold   = 2
     unhealthy_threshold = 2
   }
