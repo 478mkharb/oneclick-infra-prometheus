@@ -7,7 +7,7 @@ resource "aws_lb_target_group" "thanos" {
 
   health_check {
     protocol            = "HTTP"
-    port                = "30900"
+    port                = "traffic-port"
     path                = "/-/ready"
     matcher             = "200"
     interval            = 30
