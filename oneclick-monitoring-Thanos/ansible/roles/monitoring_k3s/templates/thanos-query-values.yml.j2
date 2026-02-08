@@ -11,12 +11,9 @@ image:
 query:
   enabled: true
   replicaCount: 1
-
-  dnsDiscovery:
-    enabled: true
-    sidecarsService: monitoring-kube-prometheus-thanos-discovery
-    sidecarsNamespace: monitoring
-
+  stores:
+    - monitoring-kube-prometheus-thanos-discovery.monitoring.svc.cluster.local:10901
+  
 queryFrontend:
   enabled: true
   service:
