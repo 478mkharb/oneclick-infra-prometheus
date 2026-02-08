@@ -69,7 +69,7 @@ resource "aws_network_acl_rule" "inbound_grafana" {
   from_port      = 32000
   to_port        = 32000
 }
-
+# Thanos Query Frontend NodePort
 resource "aws_network_acl_rule" "inbound_thanos" {
   network_acl_id = aws_network_acl.private_nacl.id
   rule_number    = 105
