@@ -20,16 +20,6 @@ grafana:
       enabled: true
       defaultDatasourceEnabled: true
 
-  datasources:
-    datasources.yaml:
-      apiVersion: 1
-      datasources:
-        - name: Thanos
-          type: prometheus
-          url: http://thanos-query-query-frontend.monitoring.svc.cluster.local:9090
-          access: proxy
-          isDefault: true
-
 
 # =========================================================
 # PROMETHEUS (PRIMARY TOOL, HA)
