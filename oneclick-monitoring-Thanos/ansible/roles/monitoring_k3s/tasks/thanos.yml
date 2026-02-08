@@ -7,8 +7,11 @@
 
 - name: Create / update Thanos objstore secret
   ansible.builtin.shell: |
-    kubectl -n monitoring delete secret thanos-objstore --ignore-not-found
-    kubectl -n monitoring create secret generic thanos-objstore \
+    kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml \
+      -n monitoring delete secret thanos-objstore --ignore-not-found
+
+    kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml \
+      -n monitoring create secret generic thanos-objstore \
       --from-file=objstore.yml=/tmp/objstore.yml
   args:
     executable: /bin/bash
