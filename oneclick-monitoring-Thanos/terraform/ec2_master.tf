@@ -1,6 +1,6 @@
 resource "aws_instance" "k3s_server" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "c7i-flex.large"
+  instance_type = "t3.small"
   iam_instance_profile = "ec2-ssm-profile"
   subnet_id     = aws_subnet.private_a.id
   private_ip = "10.0.3.10"
