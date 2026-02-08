@@ -95,3 +95,12 @@ resource "aws_security_group_rule" "dns_tcp" {
   security_group_id        = aws_security_group.private_ec2_sg.id
   source_security_group_id = aws_security_group.private_ec2_sg.id
 }
+# Node Exporter
+resource "aws_security_group_rule" "node_exporter" {
+  type                     = "ingress"
+  from_port                = 9100
+  to_port                  = 9100
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.private_ec2_sg.id
+  source_security_group_id = aws_security_group.private_ec2_sg.id
+}
