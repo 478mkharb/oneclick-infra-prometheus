@@ -12,15 +12,24 @@ grafana:
     port: 80
     targetPort: 3000
     nodePort: 32000
-    
+
   defaultDashboardsEnabled: true
 
-  additionalDataSources:
-    - name: Thanos
-      type: prometheus
-      url: http://thanos-query-query-frontend.monitoring.svc.cluster.local:9090
-      access: proxy
-      isDefault: true
+  sidecar:
+    datasources:
+      enabled: true
+      defaultDatasourceEnabled: false
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Thanos
+          type: prometheus
+          url: http://thanos-query-query-frontend.monitoring.svc.cluster.local:9090
+          access: proxy
+          isDefault: true
+
 
 # -----------------------------
 # Prometheus (PRIMARY TOOL)
@@ -28,11 +37,10 @@ grafana:
 prometheus:
   enabled: true
 
-  # Internal only (do NOT expose Prometheus directly)
   service:
     type: ClusterIP
 
-  # REQUIRED for Thanos Query discovery
+  # REQUIRED for Thanos discovery
   thanosService:
     enabled: true
 
@@ -55,9 +63,7 @@ prometheus:
             requests:
               storage: 50Gi
 
-    # -----------------------------
-    # Thanos Sidecar (REQUIRED)
-    # -----------------------------
+    # Thanos sidecar
     thanos:
       objectStorageConfig:
         existingSecret:
