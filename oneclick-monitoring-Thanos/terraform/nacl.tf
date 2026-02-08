@@ -66,21 +66,21 @@ resource "aws_network_acl_rule" "inbound_grafana" {
   protocol       = "tcp"
   rule_action    = "allow"
   cidr_block     = aws_vpc.this.cidr_block
-  from_port      = 30000
-  to_port        = 30000
+  from_port      = 32000
+  to_port        = 32000
 }
 
-# Prometheus NodePort
-resource "aws_network_acl_rule" "inbound_prometheus" {
+resource "aws_network_acl_rule" "inbound_thanos" {
   network_acl_id = aws_network_acl.private_nacl.id
-  rule_number    = 110
+  rule_number    = 105
   egress         = false
   protocol       = "tcp"
   rule_action    = "allow"
   cidr_block     = aws_vpc.this.cidr_block
-  from_port      = 30090
-  to_port        = 30090
+  from_port      = 30900
+  to_port        = 30900
 }
+
 
 # --------------------------------------------------
 # OUTBOUND RULES
