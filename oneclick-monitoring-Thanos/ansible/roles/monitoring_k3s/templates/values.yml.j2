@@ -12,7 +12,15 @@ grafana:
     port: 80
     targetPort: 3000
     nodePort: 32000
+    
+  defaultDashboardsEnabled: true
 
+  additionalDataSources:
+    - name: Thanos
+      type: prometheus
+      url: http://thanos-query-query-frontend.monitoring.svc.cluster.local:9090
+      access: proxy
+      isDefault: true
 
 # -----------------------------
 # Prometheus (PRIMARY TOOL)
