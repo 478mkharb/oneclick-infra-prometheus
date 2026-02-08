@@ -20,7 +20,7 @@
 
 - name: Render kube-prometheus-stack values file
   ansible.builtin.template:
-    src: values.yml.j2
+    src: values-kube-prometheus.yml.j2
     dest: /tmp/kube-prometheus-values.yml
     mode: "0644"
   become: true
