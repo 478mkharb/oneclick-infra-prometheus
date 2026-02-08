@@ -20,8 +20,13 @@ grafana:
 prometheus:
   enabled: true
 
+  # Internal only (do NOT expose Prometheus directly)
   service:
     type: ClusterIP
+
+  # 🔥 REQUIRED for Thanos Query discovery
+  thanosService:
+    enabled: true
 
   prometheusSpec:
     replicas: 2
@@ -43,7 +48,9 @@ prometheus:
             requests:
               storage: 50Gi
 
+    # -----------------------------
     # Thanos Sidecar (REQUIRED)
+    # -----------------------------
     thanos:
       enabled: true
       objectStorageConfig:
