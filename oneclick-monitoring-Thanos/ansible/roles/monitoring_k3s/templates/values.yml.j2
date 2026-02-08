@@ -21,7 +21,7 @@ prometheus:
   enabled: true
 
   service:
-    enabled: false   # do NOT expose Prometheus
+    type: ClusterIP
 
   prometheusSpec:
     replicas: 2
