@@ -1,23 +1,56 @@
 ---
-- name: Add prometheus Helm repo
+# =========================================================
+# 1. ADD HELM REPOSITORIES
+# =========================================================
+- name: Add Helm repos
   shell: |
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
+    helm repo add bitnami https://charts.bitnami.com/bitnami || true
     helm repo update
   args:
     executable: /bin/bash
   become: true
 
 
+# =========================================================
+# 2. CREATE MONITORING NAMESPACE
+# =========================================================
 - name: Create monitoring namespace
   kubernetes.core.k8s:
     api_version: v1
     kind: Namespace
     name: monitoring
     state: present
-    kubeconfig: /root/.kube/config
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
   become: true
 
 
+# =========================================================
+# 3. CREATE THANOS OBJECT STORE SECRET (MUST BE FIRST)
+# =========================================================
+- name: Render Thanos objstore config
+  ansible.builtin.template:
+    src: objstore.yml.j2
+    dest: /tmp/objstore.yml
+    mode: "0644"
+  become: true
+
+- name: Create / update Thanos objstore secret
+  ansible.builtin.shell: |
+    kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml \
+      -n monitoring delete secret thanos-objstore --ignore-not-found
+
+    kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml \
+      -n monitoring create secret generic thanos-objstore \
+      --from-file=objstore.yml=/tmp/objstore.yml
+  args:
+    executable: /bin/bash
+  become: true
+
+
+# =========================================================
+# 4. DEPLOY KUBE-PROMETHEUS-STACK (PROMETHEUS + SIDECAR)
+# =========================================================
 - name: Render kube-prometheus-stack values file
   ansible.builtin.template:
     src: values-kube-prometheus.yml.j2
@@ -25,25 +58,21 @@
     mode: "0644"
   become: true
 
-
-- name: Deploy kube-prometheus-stack with custom values
+- name: Deploy kube-prometheus-stack
   ansible.builtin.shell: |
     helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
       --namespace monitoring \
       --create-namespace \
-      -f /tmp/kube-prometheus-values.yml
+      -f /tmp/kube-prometheus-values.yml \
+      --kubeconfig /etc/rancher/k3s/k3s.yaml
   args:
     executable: /bin/bash
   become: true
 
-- name: Add Bitnami Helm repo (for Thanos)
-  shell: |
-    helm repo add bitnami https://charts.bitnami.com/bitnami || true
-    helm repo update
-  args:
-    executable: /bin/bash
-  become: true
 
+# =========================================================
+# 5. DEPLOY THANOS QUERY (BITNAMI)
+# =========================================================
 - name: Render Thanos Query values file
   ansible.builtin.template:
     src: thanos-query-values.yml.j2
@@ -55,60 +84,7 @@
   ansible.builtin.shell: |
     helm upgrade --install thanos-query bitnami/thanos \
       --namespace monitoring \
-      -f /tmp/thanos-query-values.yml
-  args:
-    executable: /bin/bash
-  become: true
-- name: Add prometheus Helm repo
-  shell: |
-    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
-    helm repo update
-  args:
-    executable: /bin/bash
-  become: true
-
-
-- name: Create monitoring namespace
-  kubernetes.core.k8s:
-    api_version: v1
-    kind: Namespace
-    name: monitoring
-    state: present
-    kubeconfig: /etc/rancher/k3s/k3s.yaml
-  become: true
-
-
-- name: Render Thanos objstore config
-  ansible.builtin.template:
-    src: objstore.yml.j2
-    dest: /tmp/objstore.yml
-    mode: "0644"
-  become: true
-
-
-- name: Create / update Thanos objstore secret
-  ansible.builtin.shell: |
-    kubectl -n monitoring delete secret thanos-objstore --ignore-not-found
-    kubectl -n monitoring create secret generic thanos-objstore \
-      --from-file=objstore.yml=/tmp/objstore.yml
-  args:
-    executable: /bin/bash
-  become: true
-
-
-- name: Render kube-prometheus-stack values file
-  ansible.builtin.template:
-    src: values-kube-prometheus.yml.j2
-    dest: /tmp/kube-prometheus-values.yml
-    mode: "0644"
-  become: true
-
-
-- name: Deploy kube-prometheus-stack
-  ansible.builtin.shell: |
-    helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
-      --namespace monitoring \
-      -f /tmp/kube-prometheus-values.yml \
+      -f /tmp/thanos-query-values.yml \
       --kubeconfig /etc/rancher/k3s/k3s.yaml
   args:
     executable: /bin/bash

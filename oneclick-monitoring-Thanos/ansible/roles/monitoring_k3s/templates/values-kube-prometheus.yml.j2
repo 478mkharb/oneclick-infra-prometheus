@@ -1,5 +1,5 @@
 # =========================================================
-# GRAFANA (UI only, data from Thanos)
+# GRAFANA (UI only, data comes from Thanos Query)
 # =========================================================
 grafana:
   enabled: true
@@ -19,8 +19,17 @@ grafana:
     datasources:
       enabled: true
       defaultDatasourceEnabled: true
-  
-  datasources: {}
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Thanos
+          type: prometheus
+          url: http://thanos-query-query-frontend.monitoring.svc.cluster.local:9090
+          access: proxy
+          isDefault: true
+
 
 # =========================================================
 # PROMETHEUS (PRIMARY TOOL, HA)
@@ -28,10 +37,11 @@ grafana:
 prometheus:
   enabled: true
 
+  # Never expose Prometheus directly
   service:
-    type: ClusterIP   # never expose Prometheus directly
+    type: ClusterIP
 
-  # REQUIRED for Thanos discovery
+  # REQUIRED so Thanos Query can discover sidecars
   thanosService:
     enabled: true
 
@@ -41,11 +51,11 @@ prometheus:
 
     resources:
       requests:
-        memory: 512Mi
         cpu: 250m
+        memory: 512Mi
       limits:
-        memory: 1Gi
         cpu: 500m
+        memory: 1Gi
 
     storageSpec:
       volumeClaimTemplate:
@@ -56,7 +66,7 @@ prometheus:
             requests:
               storage: 50Gi
 
-    # Thanos Sidecar
+    # Thanos Sidecar (uploads blocks, serves gRPC)
     thanos:
       objectStorageConfig:
         existingSecret:
@@ -65,13 +75,13 @@ prometheus:
 
 
 # =========================================================
-# THANOS QUERY (HA PROMETHEUS UI)
+# THANOS QUERY (UI + API)
 # =========================================================
 thanosQuery:
   enabled: true
   replicaCount: 1
 
-  # IMPORTANT: static store discovery
+  # Discover Prometheus sidecars + Store Gateway
   stores:
     - monitoring-kube-prometheus-thanos-discovery.monitoring.svc.cluster.local:10901
 
@@ -84,6 +94,9 @@ thanosQuery:
       memory: 2Gi
 
 
+# =========================================================
+# THANOS QUERY FRONTEND (EXPOSED VIA ALB)
+# =========================================================
 thanosQueryFrontend:
   enabled: true
 
@@ -92,6 +105,55 @@ thanosQueryFrontend:
     port: 9090
     targetPort: 9090
     nodePort: 30900
+
+
+# =========================================================
+# THANOS STORE GATEWAY (READS FROM S3)
+# =========================================================
+thanosStoreGateway:
+  enabled: true
+  replicaCount: 1
+
+  objectStorageConfig:
+    existingSecret:
+      name: thanos-objstore
+      key: objstore.yml
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+
+# =========================================================
+# THANOS COMPACTOR (WRITES TO S3)
+# =========================================================
+thanosCompactor:
+  enabled: true
+
+  retentionResolutionRaw: 30d
+  retentionResolution5m: 90d
+  retentionResolution1h: 1y
+
+  objectStorageConfig:
+    existingSecret:
+      name: thanos-objstore
+      key: objstore.yml
+
+  persistence:
+    enabled: true
+    size: 20Gi
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
 
 
 # =========================================================
