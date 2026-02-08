@@ -11,11 +11,31 @@ image:
 query:
   enabled: true
   replicaCount: 1
+
+  # Pin Thanos Query to k3s_server (c7x.large)
+  nodeSelector:
+    role: server
+
+  # IMPORTANT: static store discovery (correct)
   stores:
     - monitoring-kube-prometheus-thanos-discovery.monitoring.svc.cluster.local:10901
-  
+
+  # Give Thanos enough resources (prevents slow UI)
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+
 queryFrontend:
   enabled: true
+
+  # Pin frontend to server as well
+  nodeSelector:
+    role: server
+
   service:
     type: NodePort
     ports:
