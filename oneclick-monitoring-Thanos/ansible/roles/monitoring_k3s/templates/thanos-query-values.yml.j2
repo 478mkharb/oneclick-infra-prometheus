@@ -12,13 +12,6 @@ query:
   enabled: true
   replicaCount: 1
 
-  # Pin Thanos Query to k3s_server (c7x.large)
-  nodeSelector:
-    role: server
-    
-  # Don't use anti-affinity (single node cluster)
-  affinity: {}
-
   tolerations:
     - operator: Exists
 
