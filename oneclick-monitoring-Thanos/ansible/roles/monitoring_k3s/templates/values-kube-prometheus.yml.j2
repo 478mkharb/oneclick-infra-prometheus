@@ -36,7 +36,9 @@ prometheus:
 
   prometheusSpec:
     replicas: 2
-    retention: 10d
+    minBlockDuration: 10m
+    maxBlockDuration: 10m
+    retention: 1d
 
     resources:
       requests:
