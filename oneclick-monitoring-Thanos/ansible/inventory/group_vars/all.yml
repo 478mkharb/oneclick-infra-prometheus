@@ -9,8 +9,8 @@ ansible_aws_ssm_timeout: 120
 ansible_aws_ssm_retries: 5
 
 # REQUIRED
-ansible_aws_ssm_bucket_name: oneclick-terraform.tf-nat
+ansible_aws_ssm_bucket_name: oneclick-monitoring-bucket
 # Thanos Object Storage Config
-thanos_bucket: oneclick-terraform.tf-nat
+thanos_bucket: oneclick-monitoring-bucket
 aws_region: ap-south-1
 
