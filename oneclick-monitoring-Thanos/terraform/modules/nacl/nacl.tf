@@ -1,6 +1,6 @@
 resource "aws_network_acl" "private_nacl" {
-  vpc_id = aws_vpc.this.id
-
+  vpc_id = var.vpc_id
+  
   tags = {
     Name    = "private-nacl"
     Project = var.project
@@ -8,15 +8,13 @@ resource "aws_network_acl" "private_nacl" {
 }
 
 # Associate NACL with private subnets
-resource "aws_network_acl_association" "private_a" {
-  subnet_id      = aws_subnet.private_a.id
+resource "aws_network_acl_association" "private" {
+  count = length(var.private_subnet_ids)
+
+  subnet_id      = var.private_subnet_ids[count.index]
   network_acl_id = aws_network_acl.private_nacl.id
 }
 
-resource "aws_network_acl_association" "private_b" {
-  subnet_id      = aws_subnet.private_b.id
-  network_acl_id = aws_network_acl.private_nacl.id
-}
 
 # --------------------------------------------------
 # INBOUND RULES
@@ -29,7 +27,7 @@ resource "aws_network_acl_rule" "inbound_node_exporter" {
   egress         = false
   protocol       = "tcp"
   rule_action    = "allow"
-  cidr_block     = aws_vpc.this.cidr_block
+  cidr_block     = var.vpc_cidr
   from_port      = 9100
   to_port        = 9100
 }
@@ -65,7 +63,7 @@ resource "aws_network_acl_rule" "inbound_grafana" {
   egress         = false
   protocol       = "tcp"
   rule_action    = "allow"
-  cidr_block     = aws_vpc.this.cidr_block
+  cidr_block     = var.vpc_cidr
   from_port      = 32000
   to_port        = 32000
 }
@@ -76,7 +74,7 @@ resource "aws_network_acl_rule" "inbound_thanos" {
   egress         = false
   protocol       = "tcp"
   rule_action    = "allow"
-  cidr_block     = aws_vpc.this.cidr_block
+  cidr_block     = var.vpc_cidr
   from_port      = 30900
   to_port        = 30900
 }

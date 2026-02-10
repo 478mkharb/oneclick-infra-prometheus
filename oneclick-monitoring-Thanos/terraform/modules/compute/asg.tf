@@ -5,14 +5,11 @@ resource "aws_autoscaling_group" "k3s_workers" {
   max_size         = 2
   min_size         = 1
 
-  vpc_zone_identifier = [
-    aws_subnet.private_a.id,
-    aws_subnet.private_b.id
-  ]
+  vpc_zone_identifier = var.private_subnet_ids
 
   target_group_arns = [
-    aws_lb_target_group.grafana.arn,
-    aws_lb_target_group.thanos.arn
+    var.grafana_tg_arn,
+    var.thanos_tg_arn
   ]
 
   health_check_type = "EC2"

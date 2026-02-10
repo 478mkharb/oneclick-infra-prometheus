@@ -20,6 +20,7 @@ variable "k3s_server_private_ip" {
 }
 
 variable "k3s_token" {
-  type        = string
-  sensitive   = true
+  type      = string
+  sensitive = true
 }
+

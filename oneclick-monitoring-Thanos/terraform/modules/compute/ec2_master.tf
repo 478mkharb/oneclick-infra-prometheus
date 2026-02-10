@@ -1,14 +1,17 @@
 resource "aws_instance" "k3s_server" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "c7i-flex.large"
+
   iam_instance_profile = "ec2-ssm-profile"
-  subnet_id     = aws_subnet.private_a.id
-  private_ip = "10.0.3.10"
-  
+
+  subnet_id = var.private_subnet_ids[0]
+  private_ip = var.k3s_server_private_ip
+
   vpc_security_group_ids = [
-  aws_security_group.private_ec2_sg.id
-]
- user_data = base64encode(<<EOF
+    var.private_ec2_sg_id
+  ]
+
+  user_data = base64encode(<<EOF
 #!/bin/bash
 set -ux
 exec > /var/log/k3s-server.log 2>&1
@@ -29,12 +32,10 @@ sysctl -w net.ipv4.ip_forward=1 || true
 
 echo "[SSM] Installing SSM Agent"
 
-# Try snap (Ubuntu default)
 if command -v snap >/dev/null 2>&1; then
   snap install amazon-ssm-agent --classic || true
 fi
 
-# Fallback to deb if snap service not present
 if ! systemctl list-unit-files | grep -q amazon-ssm-agent; then
   curl -fsSL -o /tmp/amazon-ssm-agent.deb \
     https://s3.ap-south-1.amazonaws.com/amazon-ssm-ap-south-1/latest/debian_amd64/amazon-ssm-agent.deb
@@ -52,4 +53,3 @@ EOF
     Project = var.project
   }
 }
-
