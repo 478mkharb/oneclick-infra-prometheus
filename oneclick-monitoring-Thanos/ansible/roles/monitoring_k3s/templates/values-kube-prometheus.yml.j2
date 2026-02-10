@@ -37,8 +37,7 @@ prometheus:
   prometheusSpec:
     replicas: 2
     # ⏱ control upload frequency to Thanos (and thus query freshness)
-    minBlockDuration: 10m
-    maxBlockDuration: 10m
+    blockSize: 10m
     retention: 1d
 
     resources:
