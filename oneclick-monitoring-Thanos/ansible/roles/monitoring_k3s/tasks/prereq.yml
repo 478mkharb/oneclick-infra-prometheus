@@ -1,9 +1,11 @@
 ---
+# 1. UPDATE APT CACHE
 - name: Update apt cache
   ansible.builtin.apt:
     update_cache: yes
   become: true
 
+# 2. INSTALL PYTHON LIBRARIES FOR KUBERNETES USING APT
 - name: Ensure python3 and pip are installed
   ansible.builtin.apt:
     name:
@@ -12,6 +14,7 @@
     state: present
   become: true
 
+# 3. INSTALL PYTHON LIBRARIES FOR KUBERNETES USING PIP
 - name: Install Kubernetes Python library for Ansible
   ansible.builtin.pip:
     name:
@@ -21,22 +24,21 @@
     executable: pip3
   become: true
 
-# Detect kubeconfig paths
-
+# 4. SETUP KUBECONFIG FOR ROOT USER (REQUIRED FOR ANSIBLE K3S MODULES)
 - name: Detect k3s kubeconfig
   stat:
     path: /etc/rancher/k3s/k3s.yaml
   register: k3s_kubeconfig
   become: true
-
+  
+# 5. DETECT kubeadm kubeconfig
 - name: Detect kubeadm kubeconfig
   stat:
     path: /etc/kubernetes/admin.conf
   register: kubeadm_kubeconfig
   become: true
 
-# Wait if k3s exists but kubeconfig not ready
-
+# 6. WAIT FOR KUBECONFIG IF kubeadm IS INSTALLED BUT CONFIG NOT PRESENT (k3s IS FASTER TO PROVISION)
 - name: Wait for k3s kubeconfig if k3s service exists
   stat:
     path: /etc/rancher/k3s/k3s.yaml
@@ -49,9 +51,7 @@
     - k3s_kubeconfig.stat.exists or k3s_kubeconfig is defined
   become: true
 
-
-# Final failure check
-
+# 7. FAIL IF NO KUBECONFIG FOUND (BOTH INSTALL METHODS)
 - name: Fail if no kubeconfig found
   fail:
     msg: >
@@ -61,9 +61,7 @@
     - not k3s_kubeconfig.stat.exists
     - not kubeadm_kubeconfig.stat.exists
 
-
-# Select kubeconfig source
-
+# 8. SET KUBECONFIG SOURCE PATH (PRIORITIZE k3s)
 - name: Set kubeconfig source path
   set_fact:
     kubeconfig_src: >-
@@ -73,16 +71,14 @@
         else '/etc/kubernetes/admin.conf'
       }}
 
-
-# Root kubeconfig setup
-
+# 9. ENSURE ROOT .kube DIRECTORY EXISTS
 - name: Ensure root .kube directory exists
   file:
     path: /root/.kube
     state: directory
     mode: '0700'
   become: true
-
+# 10. COPY kubeconfig TO ROOT HOME
 - name: Copy kubeconfig for root
   copy:
     src: "{{ kubeconfig_src }}"
@@ -91,8 +87,7 @@
     mode: '0600'
   become: true
 
-# HARD GATE – kubeconfig usability
-
+# 11. HARD GATE ON KUBECONFIG USABILITY (WAIT FOR API TO BE READY)
 - name: Wait until kubeconfig is usable
   command: kubectl get nodes
   environment:

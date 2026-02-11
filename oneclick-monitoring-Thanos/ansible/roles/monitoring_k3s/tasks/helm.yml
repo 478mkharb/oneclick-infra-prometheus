@@ -1,7 +1,5 @@
 ---
-# =========================================================
 # 1. ADD HELM REPOSITORIES
-# =========================================================
 - name: Add Helm repos
   shell: |
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
@@ -11,10 +9,7 @@
     executable: /bin/bash
   become: true
 
-
-# =========================================================
 # 2. CREATE MONITORING NAMESPACE
-# =========================================================
 - name: Create monitoring namespace
   kubernetes.core.k8s:
     api_version: v1
@@ -24,13 +19,10 @@
     kubeconfig: /etc/rancher/k3s/k3s.yaml
   become: true
 
-
-# =========================================================
 # 3. CREATE THANOS OBJECT STORE SECRET (MUST BE FIRST)
-# =========================================================
-- name: Render Thanos objstore config
-  ansible.builtin.template:
-    src: objstore.yml.j2
+- name: Copy Thanos objstore config
+  ansible.builtin.copy:
+    src: objstore.yml
     dest: /tmp/objstore.yml
     mode: "0644"
   become: true
@@ -47,13 +39,10 @@
     executable: /bin/bash
   become: true
 
-
-# =========================================================
 # 4. DEPLOY KUBE-PROMETHEUS-STACK (PROMETHEUS + SIDECAR)
-# =========================================================
-- name: Render kube-prometheus-stack values file
-  ansible.builtin.template:
-    src: values-kube-prometheus.yml.j2
+- name: Copy kube-prometheus-stack values file
+  ansible.builtin.copy:
+    src: values-kube-prometheus.yml
     dest: /tmp/kube-prometheus-values.yml
     mode: "0644"
   become: true
@@ -69,13 +58,10 @@
     executable: /bin/bash
   become: true
 
-
-# =========================================================
 # 5. DEPLOY THANOS QUERY (BITNAMI)
-# =========================================================
-- name: Render Thanos Query values file
-  ansible.builtin.template:
-    src: thanos-query-values.yml.j2
+- name: Copy Thanos Query values file
+  ansible.builtin.copy:
+    src: thanos-query-values.yml
     dest: /tmp/thanos-query-values.yml
     mode: "0644"
   become: true

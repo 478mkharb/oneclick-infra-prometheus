@@ -1,6 +1,5 @@
 ---
 # roles/monitoring_k8s/tasks/main.yml
-
 - name: Include prerequisite tasks
   import_tasks: prereq.yml
 
