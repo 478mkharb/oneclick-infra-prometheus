@@ -22,13 +22,22 @@ pipeline {
       }
     }
 
+    stage('Preflight: Docker Check') {
+      steps {
+        sh '''
+          echo "Checking Docker availability..."
+          docker --version
+        '''
+      }
+    }
+
     stage('GitLeaks Scan (CI)') {
       steps {
         sh '''
           docker run --rm \
             -v "$PWD:/repo" \
             zricethezav/gitleaks:latest \
-            detect --source=/repo --no-git --verbose
+            detect --source=/repo --no-git
         '''
       }
     }
@@ -140,7 +149,7 @@ pipeline {
       echo "✅ Pipeline completed successfully"
     }
     failure {
-      echo "❌ Pipeline failed (CI checks or execution error)"
+      echo "❌ Pipeline failed – check Docker / CI tool output"
     }
   }
 }
