@@ -1,0 +1,93 @@
+---
+- name: Ensure Prometheus user exists
+  become: true
+  become_method: sudo
+  user:
+    name: prometheus
+    system: yes
+    shell: /sbin/nologin
+  ignore_errors: true
+
+- name: Create required directories
+  become: true
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: "0755"
+  loop:
+    - "{{ prometheus_install_dir | default('/opt/prometheus') }}"
+    - "{{ prometheus_data_dir | default('/var/lib/prometheus') }}"
+    - /etc/prometheus
+
+- name: Download Prometheus tarball
+  become: true
+  get_url:
+    url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+    dest: /tmp/prometheus.tar.gz
+    mode: '0644'
+
+- name: Extract Prometheus
+  become: true
+  unarchive:
+    src: /tmp/prometheus.tar.gz
+    dest: /opt/
+    remote_src: yes
+
+- name: Install Prometheus binaries
+  become: true
+  copy:
+    src: "/opt/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}"
+    dest: /usr/local/bin/{{ item }}
+    owner: prometheus
+    group: prometheus
+    mode: "0755"
+    remote_src: yes
+  loop:
+    - prometheus
+    - promtool
+
+- name: Copy Prometheus console files
+  become: true
+  copy:
+    src: "/opt/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}"
+    dest: /etc/prometheus/
+    owner: prometheus
+    group: prometheus
+    mode: "0755"
+    remote_src: yes
+  loop:
+    - consoles
+    - console_libraries
+
+- name: Copy Prometheus config
+  become: true
+  template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    owner: prometheus
+    group: prometheus
+    mode: "0644"
+  notify: restart prometheus
+
+- name: Create Prometheus systemd service
+  become: true
+  template:
+    src: prometheus.service.yml.j2
+    dest: /etc/systemd/system/prometheus.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart prometheus
+
+- name: Reload systemd daemon
+  become: true
+  command: systemctl daemon-reload
+
+- name: Ensure Prometheus service is enabled and running
+  become: true
+  systemd:
+    name: prometheus
+    enabled: yes
+    state: started

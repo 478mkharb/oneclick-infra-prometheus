@@ -1,0 +1,7 @@
+prometheus_user: monitor
+prometheus_group: monitor
+prometheus_base_dir: /opt/monitoring
+prometheus_dir: /opt/monitoring/prometheus
+prometheus_version: "2.52.0"
+prometheus_install_dir: /opt/prometheus
+prometheus_data_dir: /var/lib/prometheus

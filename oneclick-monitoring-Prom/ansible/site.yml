@@ -1,0 +1,12 @@
+---
+- name: Configure Monitoring Stack
+  hosts: role_monitoring
+  become: true
+  become_user: root
+  gather_facts: true
+  roles:
+    - prometheus
+    - grafana
+    - blackbox
+    - node_exporter
+    - app_server

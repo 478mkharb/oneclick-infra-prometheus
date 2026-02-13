@@ -1,0 +1,24 @@
+galaxy_info:
+  author: Mukesh Kharb
+  description: >
+    Ansible role for deploying a production-style Java application (Task-Master-Pro)
+    along with monitoring stack including Prometheus, Node Exporter, Blackbox Exporter,
+    and Grafana. Supports Debian and RedHat-based systems with systemd services.
+  company: Personal/Organization Name
+
+  license: MIT
+  min_ansible_version: '2.9'
+
+  galaxy_tags:
+    - java
+    - maven
+    - application
+    - prometheus
+    - grafana
+    - node_exporter
+    - blackbox_exporter
+    - monitoring
+    - systemd
+    - devops
+
+dependencies: []

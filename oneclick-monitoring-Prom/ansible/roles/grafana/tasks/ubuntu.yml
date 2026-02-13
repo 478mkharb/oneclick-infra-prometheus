@@ -1,0 +1,90 @@
+---
+# Ubuntu / Debian Grafana Installation + Provisioning
+
+- name: Install required packages
+  apt:
+    name:
+      - apt-transport-https
+      - software-properties-common
+      - curl
+    state: present
+    update_cache: yes
+
+- name: Add Grafana GPG key
+  get_url:
+    url: https://packages.grafana.com/gpg.key
+    dest: /usr/share/keyrings/grafana.key
+    mode: "0644"
+
+- name: Add Grafana APT repository
+  copy:
+    dest: /etc/apt/sources.list.d/grafana.list
+    content: |
+      deb [signed-by=/usr/share/keyrings/grafana.key] https://packages.grafana.com/oss/deb stable main
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install Grafana
+  apt:
+    name: grafana
+    state: present
+
+# Stop Grafana BEFORE provisioning
+- name: Stop Grafana service
+  systemd:
+    name: grafana-server
+    state: stopped
+    enabled: yes
+
+# Create provisioning directories
+- name: Create Grafana provisioning and dashboard directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: "0755"
+  loop:
+    - /etc/grafana/provisioning/datasources
+    - /etc/grafana/provisioning/dashboards
+    - /var/lib/grafana/dashboards
+
+# Prometheus datasource
+- name: Copy Prometheus datasource
+  copy:
+    src: datasource-prometheus.yml
+    dest: /etc/grafana/provisioning/datasources/prometheus.yml
+    owner: grafana
+    group: grafana
+    mode: "0644"
+
+# Dashboard provider
+- name: Copy dashboard provider config
+  copy:
+    src: dashboards.yml
+    dest: /etc/grafana/provisioning/dashboards/dashboards.yml
+    owner: grafana
+    group: grafana
+    mode: "0644"
+
+# COPY dashboards instead of downloading
+- name: Deploy Grafana dashboards
+  copy:
+    src: "{{ item }}"
+    dest: "/var/lib/grafana/dashboards/{{ item }}"
+    owner: grafana
+    group: grafana
+    mode: "0644"
+  loop:
+    - node-exporter.json
+    - prometheus.json
+    - blackbox.json
+    
+# Start Grafana
+- name: Enable and start Grafana
+  systemd:
+    name: grafana-server
+    state: started
+    enabled: yes

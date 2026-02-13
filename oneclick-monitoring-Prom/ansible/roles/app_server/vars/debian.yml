@@ -1,0 +1,12 @@
+app_user: deploy
+app_dir: /opt/apps/Task_Master_Pro
+app_name: task-master
+app_repo: https://github.com/jaiswaladi246/Task-Master-Pro.git
+
+java_packages:
+  Debian:
+    - openjdk-11-jdk
+
+maven_packages:
+  Debian:
+    - maven

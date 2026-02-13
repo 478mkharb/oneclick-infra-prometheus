@@ -1,0 +1,9 @@
+---
+app_name: task-master
+app_user: appuser
+
+app_base_dir: /opt/apps
+app_dir: "{{ app_base_dir }}/{{ app_name }}"
+
+app_repo: https://github.com/example/task-master.git
+app_branch: main

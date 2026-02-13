@@ -1,0 +1,29 @@
+plugin: amazon.aws.aws_ec2
+
+regions:
+  - ap-south-1
+
+filters:
+  instance-state-name: running
+  tag:Project: monitoring
+
+keyed_groups:
+  - key: tags.Role
+    prefix: role
+
+compose:
+  ansible_host: public-ip-address
+  ansible_user: >
+    'ec2-user' if tags.OSType is defined and tags.OSType == 'RedHat' else 'ubuntu'
+
+# Tags used:
+
+# Name=monitoring-server
+# Project=monitoring
+# OSType=RedHat
+# Role=monitoring
+
+# Name=appserver
+# Project=Assignment5
+# OSType=Ubuntu
+# Role=app

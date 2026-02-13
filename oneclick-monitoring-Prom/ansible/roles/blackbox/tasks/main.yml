@@ -1,0 +1,8 @@
+---
+- name: Install Blackbox exporter on RedHat
+  include_tasks: redhat.yml
+  when: ansible_os_family == "RedHat"
+
+- name: Install Blackbox exporter on Ubuntu/Debian
+  include_tasks: ubuntu.yml
+  when: ansible_os_family == "Debian"

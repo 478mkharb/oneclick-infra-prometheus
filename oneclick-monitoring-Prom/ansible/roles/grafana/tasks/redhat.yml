@@ -1,0 +1,147 @@
+---
+# Universal Grafana Installation + Dashboards Provisioning
+
+- name: Ensure Grafana repo exists (RedHat only)
+  copy:
+    dest: /etc/yum.repos.d/grafana.repo
+    content: |
+      [grafana]
+      name=Grafana OSS
+      baseurl=https://packages.grafana.com/oss/rpm
+      repo_gpgcheck=1
+      enabled=1
+      gpgcheck=1
+      gpgkey=https://packages.grafana.com/gpg.key
+      sslverify=1
+      sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+  when: ansible_os_family == "RedHat"
+
+- name: Install Grafana
+  package:
+    name: grafana
+    state: present
+
+- name: Install dependencies (RedHat only)
+  package:
+    name:
+      - wget
+      - policycoreutils-python-utils
+      - python3-firewall
+    state: present
+  when: ansible_os_family == "RedHat"
+
+# Stop Grafana before provisioning
+- name: Stop Grafana service if exists
+  systemd:
+    name: grafana-server
+    state: stopped
+  ignore_errors: true
+
+# Create required directories
+- name: Create provisioning and dashboard directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: "0755"
+  loop:
+    - /etc/grafana/provisioning/datasources
+    - /etc/grafana/provisioning/dashboards
+    - /var/lib/grafana/dashboards
+
+# Prometheus datasource
+- name: Copy Prometheus datasource
+  copy:
+    src: datasource-prometheus.yml
+    dest: /etc/grafana/provisioning/datasources/prometheus.yml
+    owner: grafana
+    group: grafana
+    mode: "0644"
+
+# Dashboard provider config
+- name: Copy dashboard provider config
+  copy:
+    src: dashboards.yml
+    dest: /etc/grafana/provisioning/dashboards/dashboards.yml
+    owner: grafana
+    group: grafana
+    mode: "0644"
+
+# Copy dashboards
+- name: Deploy Grafana dashboards
+  copy:
+    src: "{{ item }}"
+    dest: "/var/lib/grafana/dashboards/{{ item }}"
+    owner: grafana
+    group: grafana
+    mode: "0644"
+  loop:
+    - node-exporter.json
+    - prometheus.json
+    - blackbox.json
+
+# # SELinux fixes (RedHat only)
+# - name: Set SELinux context for Grafana data 
+#   block:
+#     - name: Ensure SELinux is enforcing
+#       command: getenforce
+#       register: selinux_status
+#       changed_when: false
+
+#     - name: Set SELinux context for Grafana data
+#       command: chcon -R -t grafana_var_lib_t /var/lib/grafana
+#       when: selinux_status.stdout == "Enforcing"
+#       ignore_errors: true
+#   when: ansible_os_family == "RedHat"
+
+
+# Firewalld and ports (RedHat only)
+- name: Ensure firewalld is installed and started
+  package:
+    name: firewalld
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Start firewalld
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Open Prometheus port
+  ansible.posix.firewalld:
+    port: 9090/tcp
+    permanent: yes
+    state: enabled
+    immediate: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Open blackbox exporter port
+  ansible.posix.firewalld:
+    port: 9115/tcp
+    permanent: yes
+    state: enabled
+    immediate: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Open Grafana port
+  ansible.posix.firewalld:
+    port: 3000/tcp
+    permanent: yes
+    state: enabled
+    immediate: yes
+  when: ansible_os_family == "RedHat"
+
+# Reload firewalld (RedHat only)
+- name: Reload firewalld
+  command: firewall-cmd --reload
+  when: ansible_os_family == "RedHat"
+
+# Enable and start Grafana (Universal)
+- name: Enable and start Grafana
+  systemd:
+    name: grafana-server
+    enabled: true
+    state: started

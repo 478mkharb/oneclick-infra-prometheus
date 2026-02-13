@@ -1,0 +1,9 @@
+---
+# Installation of Grafana when OS is Ubuntu or Debian
+- include_tasks: redhat.yml
+  when: ansible_os_family == "RedHat"
+
+- include_tasks: ubuntu.yml
+  when: ansible_os_family == "Debian"
+# Common tasks for all OS types
+

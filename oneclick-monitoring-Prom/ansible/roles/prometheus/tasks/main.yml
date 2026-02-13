@@ -1,0 +1,8 @@
+---
+- name: Install Prometheus on RedHat
+  include_tasks: redhat.yml
+  when: ansible_os_family == "RedHat"
+
+- name: Install Prometheus on Ubuntu/Debian
+  include_tasks: ubuntu.yml
+  when: ansible_os_family == "Debian"

@@ -1,0 +1,16 @@
+---
+- name: Create systemd service
+  template:
+    src: app.service.j2
+    dest: /etc/systemd/system/{{ app_name }}.service
+  notify:
+    - daemon reload
+    - restart application
+  tags: service
+
+- name: Enable and start app
+  systemd:
+    name: "{{ app_name }}"
+    enabled: yes
+    state: started
+  tags: service

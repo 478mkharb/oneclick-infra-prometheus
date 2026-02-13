@@ -1,0 +1,14 @@
+apiVersion: 1
+
+providers:
+  - name: 'default'
+    orgId: 1
+    folder: ''
+    type: file
+    disableDeletion: false   # allows provisioning to overwrite existing dashboards
+    editable: true           # allows dashboards to be edited in UI
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards
+
+
