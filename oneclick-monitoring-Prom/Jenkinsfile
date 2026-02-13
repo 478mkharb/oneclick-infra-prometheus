@@ -7,7 +7,6 @@ pipeline {
 
   options {
     timestamps()
-    ansiColor('xterm')
   }
 
   stages {
@@ -19,73 +18,69 @@ pipeline {
     }
 
     stage('GitLeaks Scan (CI)') {
-      agent {
-        docker {
-          image 'zricethezav/gitleaks:latest'
-        }
-      }
       steps {
         sh '''
-          gitleaks detect \
-            --source . \
-            --no-git \
-            --verbose
+          docker run --rm \
+            -v "$PWD:/work" \
+            -w /work \
+            zricethezav/gitleaks:latest \
+            detect --source . --no-git --verbose
         '''
       }
     }
 
     stage('Terraform FMT & Validate (CI)') {
-      agent {
-        docker {
-          image 'hashicorp/terraform:1.6'
-        }
-      }
       steps {
         sh '''
-          terraform version
-          terraform fmt -recursive -check
-          terraform init -backend=false
-          terraform validate
+          docker run --rm \
+            -v "$PWD:/work" \
+            -w /work \
+            hashicorp/terraform:1.6 \
+            sh -c "
+              terraform version &&
+              terraform fmt -recursive -check &&
+              terraform init -backend=false &&
+              terraform validate
+            "
         '''
       }
     }
 
     stage('Terraform Security Scan (tfsec)') {
-      agent {
-        docker {
-          image 'aquasec/tfsec:latest'
-        }
-      }
       steps {
         sh '''
-          tfsec .
+          docker run --rm \
+            -v "$PWD:/work" \
+            -w /work \
+            aquasec/tfsec:latest \
+            .
         '''
       }
     }
 
     stage('Terraform Lint (tflint)') {
-      agent {
-        docker {
-          image 'ghcr.io/terraform-linters/tflint:latest'
-        }
-      }
       steps {
         sh '''
-          tflint --init
-          tflint
+          docker run --rm \
+            -v "$PWD:/work" \
+            -w /work \
+            ghcr.io/terraform-linters/tflint:latest \
+            sh -c "
+              tflint --init &&
+              tflint
+            "
         '''
       }
     }
 
     stage('Ansible Lint (CI)') {
-      agent {
-        docker {
-          image 'cytopia/ansible-lint:latest'
-        }
-      }
       steps {
         sh '''
-          ansible-lint .
+          docker run --rm \
+            -v "$PWD:/work" \
+            -w /work \
+            cytopia/ansible-lint:latest \
+            .
         '''
       }
     }
