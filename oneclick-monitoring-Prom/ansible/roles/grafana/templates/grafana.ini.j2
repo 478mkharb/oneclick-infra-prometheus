@@ -1,9 +1,13 @@
 [server]
 protocol = http
-http_port = 32000
-domain = {{ alb_dns_name }}
-root_url = %(protocol)s://%(domain)s/grafana
+http_addr = 0.0.0.0
+http_port = 3000
+
+domain = monitoring-alb-306223517.ap-south-1.elb.amazonaws.com
+root_url = %(protocol)s://%(domain)s/grafana/
 serve_from_sub_path = true
+
+
 
 [security]
 admin_user = admin
