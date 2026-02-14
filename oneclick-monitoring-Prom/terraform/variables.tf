@@ -17,13 +17,5 @@ variable "role" {
   description = "Role tag for the instances"
   type        = string
 }
-variable "grafana_tg_arn" {
-  type = string
-}
-
-variable "prometheus_tg_arn" {
-  type = string
-}
-
 
 
