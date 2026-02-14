@@ -1,12 +1,27 @@
 [server]
-http_addr = 0.0.0.0
+protocol = http
 http_port = 32000
-
-# Replace at deploy time if you want
-domain = {{ grafana_domain | default("localhost") }}
-root_url = http://%(domain)s/
-serve_from_sub_path = false
+domain = {{ alb_dns_name }}
+root_url = %(protocol)s://%(domain)s/grafana
+serve_from_sub_path = true
 
 [security]
-admin_user = {{ grafana_admin_user }}
-admin_password = {{ grafana_admin_password }}
+admin_user = admin
+admin_password = admin
+disable_initial_admin_creation = false
+
+[auth]
+disable_login_form = false
+
+[auth.anonymous]
+enabled = false
+
+[users]
+allow_sign_up = false
+
+[log]
+mode = console
+
+[analytics]
+reporting_enabled = false
+check_for_updates = false
