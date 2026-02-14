@@ -18,8 +18,8 @@ scrape_configs:
         filters:
           - name: instance-state-name
             values: ["running"]
-          - name: tag:Monitoring
-            values: ["enabled"]
+          - name: tag:Role
+            values: ["monitoring"]
 
     relabel_configs:
       - source_labels: [__meta_ec2_private_ip]
@@ -37,7 +37,7 @@ scrape_configs:
           - name: instance-state-name
             values: ["running"]
           - name: tag:Role
-            values: ["app"]
+            values: ["monitoring"]
 
     relabel_configs:
       - source_labels: [__meta_ec2_private_ip]
@@ -58,7 +58,7 @@ scrape_configs:
           - name: instance-state-name
             values: ["running"]
           - name: tag:Role
-            values: ["app"]
+            values: ["monitoring"]
 
     relabel_configs:
       - source_labels: [__meta_ec2_private_ip]
