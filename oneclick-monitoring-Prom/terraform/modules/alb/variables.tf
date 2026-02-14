@@ -13,3 +13,8 @@ variable "public_subnet_ids" {
 variable "alb_sg_id" {
   type = string
 }
+variable "monitoring_instance_id" {
+  description = "EC2 instance ID where Grafana and Prometheus are running"
+  type        = string
+  
+}

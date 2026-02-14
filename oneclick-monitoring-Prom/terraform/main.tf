@@ -11,11 +11,12 @@ module "security_groups" {
 }
 
 module "alb" {
-  source            = "./modules/alb"
-  project           = var.project
-  vpc_id            = module.vpc.vpc_id
-  public_subnet_ids = module.vpc.public_subnet_ids
-  alb_sg_id         = module.security_groups.alb_sg_id
+  source                = "./modules/alb"
+  project               = var.project
+  vpc_id                = module.vpc.vpc_id
+  public_subnet_ids     = module.vpc.public_subnet_ids
+  alb_sg_id             = module.security_groups.alb_sg_id
+  monitoring_instance_id = module.compute.monitoring_instance_id
 }
 
 module "compute" {
