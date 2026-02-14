@@ -5,16 +5,25 @@ regions:
 
 filters:
   instance-state-name: running
-  tag:Project: monitoring
+  tag:Project: oneclick-monitoring
 
 keyed_groups:
   - key: tags.Role
-    prefix: role
+    prefix: ""
+
+hostnames:
+  - instance-id
 
 compose:
-  ansible_host: public-ip-address
-  ansible_user: >
-    'ec2-user' if tags.OSType is defined and tags.OSType == 'RedHat' else 'ubuntu'
+  private_ip: private_ip_address
+  ansible_user: root
+  ansible_connection: amazon.aws.aws_ssm
+  ansible_shell_executable: "'/bin/bash'"
+
+vars:
+  ansible_connection: aws_ssm
+  ansible_shell_executable: /bin/bash
+  ansible_python_interpreter: /usr/bin/python3
 
 # Tags used:
 
