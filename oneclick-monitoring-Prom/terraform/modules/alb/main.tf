@@ -100,15 +100,3 @@ resource "aws_lb_listener_rule" "grafana" {
     target_group_arn = aws_lb_target_group.grafana.arn
   }
 }
-
-resource "aws_lb_target_group_attachment" "grafana" {
-  target_group_arn = aws_lb_target_group.grafana.arn
-  target_id        = var.monitoring_instance_id
-  port             = 3000
-}
-
-resource "aws_lb_target_group_attachment" "prometheus" {
-  target_group_arn = aws_lb_target_group.prometheus.arn
-  target_id        = var.monitoring_instance_id
-  port             = 9090
-}
