@@ -3,9 +3,9 @@ resource "aws_launch_template" "monitoring_server_lt" {
   image_id      = data.aws_ami.ubuntu.id
   instance_type = var.instance_type_monitoring
 
-  iam_instance_profile {
-    name = "ec2-ssm-profile"
-  }
+  # iam_instance_profile {
+  #   name = "ec2-ssm-profile"
+  # }
 
   vpc_security_group_ids = [
     var.private_ec2_sg_id
