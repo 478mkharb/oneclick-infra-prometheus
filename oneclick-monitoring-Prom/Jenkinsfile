@@ -1,19 +1,33 @@
 pipeline {
   agent any
 
-  environment {
-    AWS_DEFAULT_REGION = 'ap-south-1'
+  parameters {
+    choice(
+      name: 'TF_ACTION',
+      choices: ['apply', 'destroy'],
+      description: 'Terraform action to perform'
+    )
   }
 
-  options {
-    timestamps()
+  environment {
+    AWS_DEFAULT_REGION = 'ap-south-1'
   }
 
   stages {
 
     stage('Checkout') {
       steps {
-        checkout scm
+        git branch: 'mukesh',
+            url: 'git@github.com:478mkharb/oneclick-infra-prometheus.git'
+      }
+    }
+
+    stage('Preflight: Docker Check') {
+      steps {
+        sh '''
+          echo "Checking Docker availability..."
+          docker --version
+        '''
       }
     }
 
@@ -21,78 +35,121 @@ pipeline {
       steps {
         sh '''
           docker run --rm \
-            -v "$PWD:/work" \
-            -w /work \
+            -v "$PWD:/repo" \
             zricethezav/gitleaks:latest \
-            detect --source . --no-git --verbose
+            detect --source=/repo --no-git
         '''
       }
     }
 
     stage('Terraform FMT & Validate (CI)') {
+      when {
+        expression { params.TF_ACTION == 'apply' }
+      }
       steps {
-        sh '''
-          docker run --rm \
-            -v "$PWD/oneclick-monitoring-Prom/terraform:/work" \
-            -w /work \
-            hashicorp/terraform:1.6 \
-            sh -c "
-              terraform version &&
-              terraform fmt -recursive -check &&
-              terraform init -backend=false &&
-              terraform validate
-            "
-        '''
+        dir('oneclick-monitoring-Prom/terraform') {
+          sh '''
+            terraform fmt -check -recursive
+            terraform init -backend=false
+            terraform validate
+          '''
+        }
       }
     }
 
     stage('Terraform Security Scan (tfsec)') {
+      when {
+        expression { params.TF_ACTION == 'apply' }
+      }
       steps {
         sh '''
           docker run --rm \
-            -v "$PWD:/work" \
-            -w /work \
-            aquasec/tfsec:latest \
-            .
+            -v "$PWD/oneclick-monitoring-Prom/terraform:/src" \
+            aquasec/tfsec /src
         '''
       }
     }
 
     stage('Terraform Lint (tflint)') {
+      when {
+        expression { params.TF_ACTION == 'apply' }
+      }
       steps {
-        sh '''
-          docker run --rm \
-            -v "$PWD:/work" \
-            -w /work \
-            ghcr.io/terraform-linters/tflint:latest \
-            sh -c "
-              tflint --init &&
-              tflint
-            "
-        '''
+        dir('oneclick-monitoring-Prom/terraform') {
+          sh '''
+            docker run --rm \
+              -v "$PWD:/data" \
+              -w /data \
+              ghcr.io/terraform-linters/tflint
+          '''
+        }
+      }
+    }
+
+    stage('Terraform Apply / Destroy') {
+      steps {
+        dir('oneclick-monitoring-Prom/terraform') {
+          sh '''
+            terraform init
+
+            if [ "${TF_ACTION}" = "apply" ]; then
+              terraform apply -auto-approve
+            else
+              terraform destroy -auto-approve
+            fi
+          '''
+        }
+      }
+    }
+
+    stage('Wait for SSM') {
+      when {
+        expression { params.TF_ACTION == 'apply' }
+      }
+      steps {
+        sh 'sleep 30'
       }
     }
 
     stage('Ansible Lint (CI)') {
+      when {
+        expression { params.TF_ACTION == 'apply' }
+      }
       steps {
-        sh '''
-          docker run --rm \
-            -v "$PWD:/work" \
-            -w /work \
-            cytopia/ansible-lint:latest \
-            .
-        '''
+        dir('oneclick-monitoring-Prom/ansible') {
+          sh '''
+            docker run --rm \
+              -v "$PWD:/work" \
+              -w /work \
+              cytopia/ansible-lint .
+          '''
+        }
       }
     }
 
+    stage('Run Ansible (SSM)') {
+      when {
+        expression { params.TF_ACTION == 'apply' }
+      }
+      steps {
+        dir('oneclick-monitoring-Prom/ansible') {
+          sh '''
+            export PATH=$PATH:/var/lib/jenkins/.local/bin
+            export ANSIBLE_CONFIG=$WORKSPACE/oneclick-monitoring-Prom/ansible/ansible.cfg
+            ansible-galaxy collection install amazon.aws --force
+            ansible-playbook -i inventory/aws_ec2.yml site.yml -vvv
+          '''
+        }
+      }
+    }
   }
 
   post {
     success {
-      echo '✅ Pipeline completed successfully'
+      echo "✅ Pipeline completed successfully"
     }
     failure {
-      echo '❌ Pipeline failed – check logs above'
+      echo "❌ Pipeline failed – check Docker / CI tool output"
     }
   }
 }
