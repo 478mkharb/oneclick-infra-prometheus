@@ -33,7 +33,7 @@ pipeline {
       steps {
         sh '''
           docker run --rm \
-            -v "$PWD:/work" \
+            -v "$PWD/oneclick-monitoring-Prom/terraform:/work" \
             -w /work \
             hashicorp/terraform:1.6 \
             sh -c "
