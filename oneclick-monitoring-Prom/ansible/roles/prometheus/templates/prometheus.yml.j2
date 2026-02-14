@@ -1,6 +1,8 @@
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
+  external_labels:
+    environment: {{ prometheus_environment }}
 
 scrape_configs:
 
@@ -10,29 +12,80 @@ scrape_configs:
           - "localhost:9090"
 
   - job_name: "node-exporter"
-    static_configs:
-      - targets:
-{% for host in groups.get('role_app', []) %}
-          - "{{ hostvars[host].private_ip_address }}:9100"
-{% endfor %}
+    ec2_sd_configs:
+      - region: {{ aws_region }}
+        port: 9100
+        filters:
+          - name: instance-state-name
+            values: ["running"]
+          - name: tag:Monitoring
+            values: ["enabled"]
 
-  - job_name: "blackbox-http"
+    relabel_configs:
+      - source_labels: [__meta_ec2_private_ip]
+        target_label: __address__
+        replacement: "$1:9100"
+
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: instance
+
+  - job_name: "app-metrics"
+    ec2_sd_configs:
+      - region: {{ aws_region }}
+        port: 8080
+        filters:
+          - name: instance-state-name
+            values: ["running"]
+          - name: tag:Role
+            values: ["app"]
+
+    relabel_configs:
+      - source_labels: [__meta_ec2_private_ip]
+        target_label: __address__
+        replacement: "$1:8080"
+
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: instance
+
+  - job_name: "blackbox-ec2-http"
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+
+    ec2_sd_configs:
+      - region: {{ aws_region }}
+        filters:
+          - name: instance-state-name
+            values: ["running"]
+          - name: tag:Role
+            values: ["app"]
+
+    relabel_configs:
+      - source_labels: [__meta_ec2_private_ip]
+        target_label: __param_target
+        replacement: "http://$1:8080/actuator/health"
+
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: instance
+
+      - target_label: __address__
+        replacement: "127.0.0.1:9115"
+
+  - job_name: "blackbox-alb"
     metrics_path: /probe
     params:
       module: [http_2xx]
 
     static_configs:
       - targets:
-{% for host in groups.get('role_app', []) %}
-          - "http://{{ hostvars[host].private_ip_address }}:8080/actuator/health"
-{% endfor %}
+          - "http://{{ alb_dns_name }}"
 
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
 
-      - source_labels: [__param_target]
-        target_label: instance
+      - target_label: instance
+        replacement: "alb"
 
       - target_label: __address__
         replacement: "127.0.0.1:9115"

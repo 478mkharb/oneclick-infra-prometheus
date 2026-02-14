@@ -1,4 +1,6 @@
----
-prometheus_version: "2.52.0"
-prometheus_install_dir: /opt/prometheus
+aws_region: ap-south-1
+prometheus_environment: prod
 prometheus_data_dir: /var/lib/prometheus
+
+# Safe default, override in group_vars
+alb_dns_name: localhost
