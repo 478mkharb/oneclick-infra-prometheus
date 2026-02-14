@@ -3,9 +3,15 @@ pipeline {
 
   parameters {
     choice(
+      name: 'RUN_MODE',
+      choices: ['FULL', 'CONFIG_ONLY'],
+      description: 'FULL = Terraform + Ansible | CONFIG_ONLY = Ansible only'
+    )
+
+    choice(
       name: 'TF_ACTION',
       choices: ['apply', 'destroy'],
-      description: 'Terraform action to perform'
+      description: 'Terraform action (used only in FULL mode)'
     )
   }
 
@@ -31,6 +37,12 @@ pipeline {
       }
     }
 
+    stage('Run Info') {
+      steps {
+        echo "RUN_MODE=${params.RUN_MODE}, TF_ACTION=${params.TF_ACTION}"
+      }
+    }
+
     stage('GitLeaks Scan (CI)') {
       steps {
         sh '''
@@ -44,7 +56,10 @@ pipeline {
 
     stage('Terraform FMT & Validate (CI)') {
       when {
-        expression { params.TF_ACTION == 'apply' }
+        allOf {
+          expression { params.RUN_MODE == 'FULL' }
+          expression { params.TF_ACTION == 'apply' }
+        }
       }
       steps {
         dir('oneclick-monitoring-Prom/terraform') {
@@ -57,22 +72,12 @@ pipeline {
       }
     }
 
-    // stage('Terraform Security Scan (tfsec)') {
-    //   when {
-    //     expression { params.TF_ACTION == 'apply' }
-    //   }
-    //   steps {
-    //     sh '''
-    //       docker run --rm \
-    //         -v "$PWD/oneclick-monitoring-Prom/terraform:/src" \
-    //         aquasec/tfsec /src
-    //     '''
-    //   }
-    // }
-
     stage('Terraform Lint (tflint)') {
       when {
-        expression { params.TF_ACTION == 'apply' }
+        allOf {
+          expression { params.RUN_MODE == 'FULL' }
+          expression { params.TF_ACTION == 'apply' }
+        }
       }
       steps {
         dir('oneclick-monitoring-Prom/terraform') {
@@ -87,6 +92,9 @@ pipeline {
     }
 
     stage('Terraform Apply / Destroy') {
+      when {
+        expression { params.RUN_MODE == 'FULL' }
+      }
       steps {
         dir('oneclick-monitoring-Prom/terraform') {
           sh '''
@@ -104,10 +112,13 @@ pipeline {
 
     stage('Wait for SSM') {
       when {
-        expression { params.TF_ACTION == 'apply' }
+        allOf {
+          expression { params.RUN_MODE == 'FULL' }
+          expression { params.TF_ACTION == 'apply' }
+        }
       }
       steps {
-        sh 'sleep 30'
+        sh 'sleep 20'
       }
     }
 
@@ -136,6 +147,7 @@ pipeline {
           sh '''
             export PATH=$PATH:/var/lib/jenkins/.local/bin
             export ANSIBLE_CONFIG=$WORKSPACE/oneclick-monitoring-Prom/ansible/ansible.cfg
+
             ansible-galaxy collection install amazon.aws --force
             ansible-playbook -i inventory/aws_ec2.aws_ec2.yml site.yml -vvv
           '''
@@ -149,7 +161,7 @@ pipeline {
       echo "✅ Pipeline completed successfully"
     }
     failure {
-      echo "❌ Pipeline failed – check Docker / CI tool output"
+      echo "❌ Pipeline failed – check logs"
     }
   }
 }
