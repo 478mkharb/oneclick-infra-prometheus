@@ -7,9 +7,9 @@ User=prometheus
 Group=prometheus
 ExecStart=/usr/local/bin/prometheus \
   --config.file=/etc/prometheus/prometheus.yml \
-  --storage.tsdb.path={{ prometheus_data_dir }} \
-  --web.listen-address=0.0.0.0:9090 \
-  --web.enable-lifecycle
+  --storage.tsdb.path=/var/lib/prometheus \
+  --web.external-url=/prometheus \
+  --web.route-prefix=/
 Restart=always
 
 [Install]

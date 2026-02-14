@@ -9,4 +9,4 @@
     - grafana
     - blackbox
     - node_exporter
-    - app_server
+    - web_app

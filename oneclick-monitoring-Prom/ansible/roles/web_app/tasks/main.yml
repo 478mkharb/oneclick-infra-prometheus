@@ -1,0 +1,55 @@
+- name: Install packages
+  apt:
+    name:
+      - nginx
+      - curl
+    update_cache: yes
+    state: present
+
+- name: Copy HTML page
+  copy:
+    src: index.html
+    dest: /var/www/html/index.html
+    mode: "0644"
+
+- name: Deploy nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  notify: restart nginx
+
+- name: Download nginx exporter
+  get_url:
+    url: https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
+    dest: /tmp/nginx-exporter.tar.gz
+
+- name: Extract nginx exporter
+  unarchive:
+    src: /tmp/nginx-exporter.tar.gz
+    dest: /usr/local/bin
+    remote_src: yes
+
+- name: Create exporter service
+  copy:
+    dest: /etc/systemd/system/nginx-exporter.service
+    content: |
+      [Unit]
+      Description=Nginx Prometheus Exporter
+      After=network.target
+
+      [Service]
+      ExecStart=/usr/local/bin/nginx-prometheus-exporter \
+        -nginx.scrape-uri http://127.0.0.1/nginx_status
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Enable and start services
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  loop:
+    - nginx
+    - nginx-exporter

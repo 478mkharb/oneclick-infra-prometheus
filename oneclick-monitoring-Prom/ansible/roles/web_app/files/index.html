@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OneClick Monitoring</title>
+  <style>
+    body {
+      background: linear-gradient(120deg, #667eea, #764ba2);
+      font-family: Arial, sans-serif;
+      color: white;
+      text-align: center;
+      padding-top: 100px;
+    }
+    button {
+      background: #ff9800;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #ffc107;
+    }
+    #counter {
+      font-size: 40px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>OneClick Monitoring Demo App</h1>
+<p>Monitored by Prometheus</p>
+
+<button onclick="increment()">Click Me</button>
+<div id="counter">0</div>
+
+<script>
+  let count = 0;
+  function increment() {
+    count++;
+    document.getElementById("counter").innerText = count;
+  }
+</script>
+
+</body>
+</html>

@@ -25,8 +25,6 @@ resource "aws_lb_target_group" "grafana" {
   target_type = "instance"
 
   health_check {
-    protocol            = "HTTP"
-    port                = "32000"
     path                = "/api/health"
     matcher             = "200"
     interval            = 30
@@ -47,8 +45,6 @@ resource "aws_lb_target_group" "prometheus" {
   target_type = "instance"
 
   health_check {
-    protocol            = "HTTP"
-    port                = "traffic-port"
     path                = "/-/ready"
     matcher             = "200"
     interval            = 30
@@ -61,6 +57,17 @@ resource "aws_lb_target_group" "prometheus" {
 ################################
 # Listeners
 ################################
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.monitoring.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.grafana.arn
+  }
+}
+
 resource "aws_lb_listener" "http_grafana" {
   load_balancer_arn = aws_lb.monitoring.arn
   port              = 80
@@ -72,12 +79,17 @@ resource "aws_lb_listener" "http_grafana" {
   }
 }
 
-resource "aws_lb_listener" "http_prometheus" {
-  load_balancer_arn = aws_lb.monitoring.arn
-  port              = 9090
-  protocol          = "HTTP"
+resource "aws_lb_listener_rule" "prometheus" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 10
 
-  default_action {
+  condition {
+    path_pattern {
+      values = ["/prometheus*"]
+    }
+  }
+
+  action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.prometheus.arn
   }

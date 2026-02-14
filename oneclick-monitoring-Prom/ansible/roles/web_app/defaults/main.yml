@@ -1,0 +1,2 @@
+web_port: 80
+nginx_metrics_port: 9113
