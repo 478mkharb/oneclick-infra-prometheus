@@ -1,5 +1,5 @@
 resource "aws_autoscaling_group" "monitoring_asg" {
-  name = "monitoring-asg-${count.index}"
+  name = "monitoring-asg"
 
   desired_capacity = 2
   max_size         = 3
