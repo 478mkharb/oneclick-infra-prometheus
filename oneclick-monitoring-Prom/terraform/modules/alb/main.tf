@@ -27,8 +27,8 @@ resource "aws_lb_target_group" "grafana" {
   health_check {
     protocol            = "HTTP"
     port                = "32000"
-    path                = "/"
-    matcher             = "200-399"
+    path                = "/api/health"
+    matcher             = "200"
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2
