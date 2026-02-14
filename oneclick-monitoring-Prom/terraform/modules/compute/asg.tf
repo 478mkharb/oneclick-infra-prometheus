@@ -1,4 +1,4 @@
-resource "aws_autoscaling_group" "k3s_workers" {
+resource "aws_autoscaling_group" "monitoring_asg" {
   name = "monitoring-asg"
 
   desired_capacity = 2
