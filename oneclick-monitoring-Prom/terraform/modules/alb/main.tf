@@ -1,3 +1,8 @@
+variable "monitoring_instance_id" {
+  description = "EC2 instance ID where Grafana and Prometheus are running"
+  type        = string
+}
+
 resource "aws_lb" "monitoring" {
   name               = "monitoring-alb"
   internal           = false
@@ -69,6 +74,22 @@ resource "aws_lb_listener" "http" {
   }
 }
 
+resource "aws_lb_listener_rule" "prometheus" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 10
+
+  condition {
+    path_pattern {
+      values = ["/prometheus/*"]
+    }
+  }
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.prometheus.arn
+  }
+}
+
 resource "aws_lb_listener_rule" "grafana" {
   listener_arn = aws_lb_listener.http.arn
   priority     = 20
@@ -85,18 +106,14 @@ resource "aws_lb_listener_rule" "grafana" {
   }
 }
 
-resource "aws_lb_listener_rule" "prometheus" {
-  listener_arn = aws_lb_listener.http.arn
-  priority     = 10
+resource "aws_lb_target_group_attachment" "grafana" {
+  target_group_arn = aws_lb_target_group.grafana.arn
+  target_id        = var.monitoring_instance_id
+  port             = 3000
+}
 
-  condition {
-    path_pattern {
-      values = ["/prometheus/*"]
-    }
-  }
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.prometheus.arn
-  }
+resource "aws_lb_target_group_attachment" "prometheus" {
+  target_group_arn = aws_lb_target_group.prometheus.arn
+  target_id        = var.monitoring_instance_id
+  port             = 9090
 }
