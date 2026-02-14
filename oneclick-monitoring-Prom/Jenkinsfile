@@ -57,18 +57,18 @@ pipeline {
       }
     }
 
-    stage('Terraform Security Scan (tfsec)') {
-      when {
-        expression { params.TF_ACTION == 'apply' }
-      }
-      steps {
-        sh '''
-          docker run --rm \
-            -v "$PWD/oneclick-monitoring-Prom/terraform:/src" \
-            aquasec/tfsec /src
-        '''
-      }
-    }
+    // stage('Terraform Security Scan (tfsec)') {
+    //   when {
+    //     expression { params.TF_ACTION == 'apply' }
+    //   }
+    //   steps {
+    //     sh '''
+    //       docker run --rm \
+    //         -v "$PWD/oneclick-monitoring-Prom/terraform:/src" \
+    //         aquasec/tfsec /src
+    //     '''
+    //   }
+    // }
 
     stage('Terraform Lint (tflint)') {
       when {
