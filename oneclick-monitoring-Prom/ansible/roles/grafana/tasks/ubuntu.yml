@@ -80,8 +80,8 @@
   loop:
     - node-exporter.json
     - prometheus.json
-    - blackbox.
-    
+    - blackbox.json
+
 - name: Fetch ALB DNS from SSM Parameter Store
   set_fact:
     alb_dns_name: >-
@@ -89,7 +89,9 @@
            'amazon.aws.ssm_parameter',
            '/monitoring/alb_dns',
            region=aws_region | default('ap-south-1'),
-           decrypt=true
+           decrypt=true,
+           on_missing='error',
+           on_denied='error'
          )
       }}
 
