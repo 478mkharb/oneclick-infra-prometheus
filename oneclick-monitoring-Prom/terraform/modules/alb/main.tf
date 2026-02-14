@@ -1,8 +1,3 @@
-variable "monitoring_instance_id" {
-  description = "EC2 instance ID where Grafana and Prometheus are running"
-  type        = string
-}
-
 resource "aws_lb" "monitoring" {
   name               = "monitoring-alb"
   internal           = false
