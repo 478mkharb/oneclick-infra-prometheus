@@ -89,7 +89,7 @@
     owner: root
     group: grafana
     mode: "0640"
-  notify: Restart Grafana
+  notify: restart grafana
 
 # Start Grafana
 - name: Enable and start Grafana
