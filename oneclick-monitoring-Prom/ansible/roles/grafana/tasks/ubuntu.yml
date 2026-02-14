@@ -80,7 +80,19 @@
   loop:
     - node-exporter.json
     - prometheus.json
-    - blackbox.json
+    - blackbox.
+    
+- name: Fetch ALB DNS from SSM Parameter Store
+  set_fact:
+    alb_dns_name: >-
+      {{ lookup(
+           'amazon.aws.ssm_parameter',
+           '/monitoring/alb_dns',
+           region=aws_region | default('ap-south-1'),
+           decrypt=true
+         )
+      }}
+
 # Grafana configuration
 - name: Configure Grafana
   template:
