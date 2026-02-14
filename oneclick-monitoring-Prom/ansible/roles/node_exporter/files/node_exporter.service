@@ -1,12 +1,13 @@
 [Unit]
-      Description=Node Exporter
-      After=network.target
+Description=Node Exporter
+After=network.target
 
-      [Service]
-      User=node_exporter
-      Group=node_exporter
-      ExecStart=/usr/local/bin/node_exporter
-      Restart=always
+[Service]
+User=node_exporter
+Group=node_exporter
+ExecStart=/usr/local/bin/node_exporter \
+  --web.listen-address=0.0.0.0:9100
+Restart=always
 
-      [Install]
-      WantedBy=multi-user.target
+[Install]
+WantedBy=multi-user.target

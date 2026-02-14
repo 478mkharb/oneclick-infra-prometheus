@@ -81,7 +81,16 @@
     - node-exporter.json
     - prometheus.json
     - blackbox.json
-    
+# Grafana configuration
+- name: Configure Grafana
+  template:
+    src: grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+    owner: root
+    group: grafana
+    mode: "0640"
+  notify: Restart Grafana
+
 # Start Grafana
 - name: Enable and start Grafana
   systemd:

@@ -1,0 +1,8 @@
+[server]
+http_addr = 0.0.0.0
+http_port = 32000
+
+# Replace at deploy time if you want
+domain = {{ grafana_domain | default("localhost") }}
+root_url = http://%(domain)s/
+serve_from_sub_path = false
