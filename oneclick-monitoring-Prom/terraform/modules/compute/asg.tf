@@ -1,9 +1,9 @@
 resource "aws_autoscaling_group" "monitoring_asg" {
   name = "monitoring-asg"
 
-  desired_capacity = 1
-  max_size         = 1
-  min_size         = 1
+  desired_capacity = 2
+  max_size         = 3
+  min_size         = 2
 
   vpc_zone_identifier = var.private_subnet_ids
   
