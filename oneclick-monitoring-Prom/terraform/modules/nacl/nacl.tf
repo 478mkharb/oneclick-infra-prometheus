@@ -20,6 +20,17 @@ resource "aws_network_acl_association" "private" {
 ############################################
 # INBOUND RULES
 ############################################
+# Nginx Web (ALB → EC2)
+resource "aws_network_acl_rule" "inbound_nginx" {
+  network_acl_id = aws_network_acl.private_nacl.id
+  rule_number    = 70
+  egress         = false
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = var.vpc_cidr
+  from_port      = 80
+  to_port        = 80
+}
 
 # Grafana (ALB → EC2)
 resource "aws_network_acl_rule" "inbound_grafana" {
@@ -64,7 +75,7 @@ resource "aws_network_acl_rule" "inbound_ephemeral_tcp" {
   egress         = false
   protocol       = "tcp"
   rule_action    = "allow"
-  cidr_block     = "0.0.0.0/0"
+  cidr_block     = var.vpc_cidr
   from_port      = 1024
   to_port        = 65535
 }
@@ -76,7 +87,7 @@ resource "aws_network_acl_rule" "inbound_ephemeral_udp" {
   egress         = false
   protocol       = "udp"
   rule_action    = "allow"
-  cidr_block     = "0.0.0.0/0"
+  cidr_block     = var.vpc_cidr
   from_port      = 1024
   to_port        = 65535
 }
