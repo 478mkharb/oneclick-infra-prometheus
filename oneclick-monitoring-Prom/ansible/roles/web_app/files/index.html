@@ -1,15 +1,21 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>OneClick Monitoring</title>
+
   <style>
     body {
       background: linear-gradient(120deg, #667eea, #764ba2);
       font-family: Arial, sans-serif;
       color: white;
       text-align: center;
-      padding-top: 100px;
+      padding-top: 80px;
+      margin: 0;
     }
+
     button {
       background: #ff9800;
       border: none;
@@ -17,31 +23,62 @@
       font-size: 18px;
       border-radius: 8px;
       cursor: pointer;
+      margin: 10px;
     }
+
     button:hover {
       background: #ffc107;
     }
+
     #counter {
       font-size: 40px;
       margin-top: 20px;
     }
+
+    .links {
+      margin-top: 40px;
+    }
+
+    .links a {
+      display: inline-block;
+      margin: 10px;
+      padding: 12px 25px;
+      background: #2196f3;
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+      border-radius: 6px;
+    }
+
+    .links a:hover {
+      background: #03a9f4;
+    }
   </style>
 </head>
+
 <body>
 
-<h1>OneClick Monitoring Demo App</h1>
-<p>Monitored by Prometheus</p>
+  <h1>OneClick Monitoring Demo App</h1>
+  <p>Monitored by Prometheus & Visualized with Grafana</p>
 
-<button onclick="increment()">Click Me</button>
-<div id="counter">0</div>
+  <button onclick="increment()">Click Me</button>
+  <div id="counter">0</div>
 
-<script>
-  let count = 0;
-  function increment() {
-    count++;
-    document.getElementById("counter").innerText = count;
-  }
-</script>
+  <div class="links">
+    <h2>Monitoring Dashboards</h2>
+
+    <!-- These work via ALB path-based routing -->
+    <a href="/grafana/" target="_blank">Open Grafana</a>
+    <a href="/prometheus/" target="_blank">Open Prometheus</a>
+  </div>
+
+  <script>
+    let count = 0;
+    function increment() {
+      count++;
+      document.getElementById("counter").innerText = count;
+    }
+  </script>
 
 </body>
 </html>
