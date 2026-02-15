@@ -20,6 +20,7 @@ resource "aws_network_acl_association" "private" {
 ############################################
 # INBOUND RULES
 ############################################
+
 # Nginx Web (ALB → EC2)
 resource "aws_network_acl_rule" "inbound_nginx" {
   network_acl_id = aws_network_acl.private_nacl.id
@@ -56,7 +57,7 @@ resource "aws_network_acl_rule" "inbound_prometheus" {
   to_port        = 9090
 }
 
-# Node Exporter (internal)
+# Node Exporter (internal only)
 resource "aws_network_acl_rule" "inbound_node_exporter" {
   network_acl_id = aws_network_acl.private_nacl.id
   rule_number    = 90
@@ -68,39 +69,78 @@ resource "aws_network_acl_rule" "inbound_node_exporter" {
   to_port        = 9100
 }
 
-# Ephemeral TCP (responses, health checks)
+# Ephemeral TCP (ALB health checks, NAT responses, SSM responses)
 resource "aws_network_acl_rule" "inbound_ephemeral_tcp" {
   network_acl_id = aws_network_acl.private_nacl.id
   rule_number    = 100
   egress         = false
   protocol       = "tcp"
   rule_action    = "allow"
-  cidr_block     = var.vpc_cidr
+  cidr_block     = "0.0.0.0/0"
   from_port      = 1024
   to_port        = 65535
 }
 
-# Ephemeral UDP (DNS, system traffic)
+# Ephemeral UDP (DNS responses)
 resource "aws_network_acl_rule" "inbound_ephemeral_udp" {
   network_acl_id = aws_network_acl.private_nacl.id
   rule_number    = 110
   egress         = false
   protocol       = "udp"
   rule_action    = "allow"
-  cidr_block     = var.vpc_cidr
+  cidr_block     = "0.0.0.0/0"
   from_port      = 1024
   to_port        = 65535
 }
 
 ############################################
-# OUTBOUND RULES (REQUIRED – NACL is stateless)
+# OUTBOUND RULES (STATELESS – MUST MIRROR INBOUND)
 ############################################
 
-resource "aws_network_acl_rule" "outbound_all" {
+# HTTPS outbound (SSM, AWS APIs, package downloads)
+resource "aws_network_acl_rule" "outbound_https" {
+  network_acl_id = aws_network_acl.private_nacl.id
+  rule_number    = 80
+  egress         = true
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 443
+  to_port        = 443
+}
+
+# HTTP outbound (optional but useful)
+resource "aws_network_acl_rule" "outbound_http" {
+  network_acl_id = aws_network_acl.private_nacl.id
+  rule_number    = 85
+  egress         = true
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 80
+  to_port        = 80
+}
+
+# DNS outbound
+resource "aws_network_acl_rule" "outbound_dns_udp" {
+  network_acl_id = aws_network_acl.private_nacl.id
+  rule_number    = 90
+  egress         = true
+  protocol       = "udp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 53
+  to_port        = 53
+}
+
+# Ephemeral outbound (responses to ALB / NAT)
+resource "aws_network_acl_rule" "outbound_ephemeral_tcp" {
   network_acl_id = aws_network_acl.private_nacl.id
   rule_number    = 100
   egress         = true
-  protocol       = "-1"
+  protocol       = "tcp"
   rule_action    = "allow"
   cidr_block     = "0.0.0.0/0"
+  from_port      = 1024
+  to_port        = 65535
 }
