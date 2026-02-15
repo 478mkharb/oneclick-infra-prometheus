@@ -19,14 +19,13 @@ resource "aws_lb_target_group" "grafana" {
   target_type = "instance"
 
   health_check {
-    enabled = false
-    # protocol            = "HTTP"
-    # path                = "/grafana"
-    # matcher             = "302,200"
-    # interval            = 30
-    # timeout             = 5
-    # healthy_threshold   = 2
-    # unhealthy_threshold = 2
+    protocol            = "HTTP"
+    path                = "/grafana"
+    matcher             = "302,200"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
   }
 
   tags = {
@@ -42,14 +41,13 @@ resource "aws_lb_target_group" "prometheus" {
   target_type = "instance"
 
   health_check {
-    enabled = false
-    # protocol            = "HTTP"
-    # path                = "/-/healthy"
-    # matcher             = "200"
-    # interval            = 30
-    # timeout             = 5
-    # healthy_threshold   = 2
-    # unhealthy_threshold = 2
+    protocol            = "HTTP"
+    path                = "/-/healthy"
+    matcher             = "200"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
   }
 
   tags = {
