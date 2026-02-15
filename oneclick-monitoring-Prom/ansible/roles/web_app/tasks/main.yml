@@ -47,30 +47,29 @@
     extra_opts: [--strip-components=1]
     creates: /usr/local/bin/nginx-prometheus-exporter
 
-- name: Create nginx exporter systemd service
+- name: Create nginx exporter service
   copy:
     dest: /etc/systemd/system/nginx-exporter.service
-    mode: "0644"
     content: |
       [Unit]
       Description=Nginx Prometheus Exporter
-      After=network.target nginx.service
-      Requires=nginx.service
+      After=nginx.service network.target
 
       [Service]
       ExecStart=/usr/local/bin/nginx-prometheus-exporter \
-        -nginx.scrape-uri http://127.0.0.1/nginx_status
+        -web.listen-address=0.0.0.0:9113 \
+        -nginx.scrape-uri=http://127.0.0.1/nginx_status
       Restart=always
-      RestartSec=5
 
       [Install]
       WantedBy=multi-user.target
-  notify:
-    - daemon reload
-    - restart nginx exporter
 
-- name: Enable and start nginx exporter
+- name: Reload systemd
+  command: systemctl daemon-reload
+
+- name: Enable and restart nginx exporter
   systemd:
     name: nginx-exporter
     enabled: yes
-    state: started
+    state: restarted
+
