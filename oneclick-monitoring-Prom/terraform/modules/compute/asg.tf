@@ -6,7 +6,7 @@ resource "aws_autoscaling_group" "monitoring_asg" {
   min_size         = 1
 
   vpc_zone_identifier = var.private_subnet_ids
-
+  
   target_group_arns = [
     var.grafana_tg_arn,
     var.prometheus_tg_arn

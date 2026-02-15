@@ -6,7 +6,7 @@ resource "aws_security_group" "alb_sg" {
   description = "ALB security group"
   vpc_id      = var.vpc_id
 
-  # Public HTTP access to ALB
+  # Public HTTP access
   ingress {
     description = "Allow HTTP from internet"
     from_port   = 80
@@ -15,9 +15,8 @@ resource "aws_security_group" "alb_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # ALB -> EC2 targets
+  # ALB -> targets
   egress {
-    description = "Allow outbound to targets"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -40,51 +39,50 @@ resource "aws_security_group" "private_ec2_sg" {
 
   # Grafana from ALB
   ingress {
-    description             = "Grafana from ALB"
-    from_port               = 3000
-    to_port                 = 3000
-    protocol                = "tcp"
-    source_security_group_id = aws_security_group.alb_sg.id
+    description     = "Grafana from ALB"
+    from_port       = 3000
+    to_port         = 3000
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]
   }
 
   # Prometheus from ALB
   ingress {
-    description             = "Prometheus from ALB"
-    from_port               = 9090
-    to_port                 = 9090
-    protocol                = "tcp"
-    source_security_group_id = aws_security_group.alb_sg.id
+    description     = "Prometheus from ALB"
+    from_port       = 9090
+    to_port         = 9090
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]
   }
 
   # Node Exporter (internal only)
   ingress {
-    description             = "Node exporter internal"
-    from_port               = 9100
-    to_port                 = 9100
-    protocol                = "tcp"
-    source_security_group_id = aws_security_group.private_ec2_sg.id
+    description     = "Node exporter internal"
+    from_port       = 9100
+    to_port         = 9100
+    protocol        = "tcp"
+    security_groups = [aws_security_group.private_ec2_sg.id]
   }
 
-  # DNS (internal)
+  # DNS internal
   ingress {
-    description             = "DNS UDP internal"
-    from_port               = 53
-    to_port                 = 53
-    protocol                = "udp"
-    source_security_group_id = aws_security_group.private_ec2_sg.id
+    description     = "DNS UDP internal"
+    from_port       = 53
+    to_port         = 53
+    protocol        = "udp"
+    security_groups = [aws_security_group.private_ec2_sg.id]
   }
 
   ingress {
-    description             = "DNS TCP internal"
-    from_port               = 53
-    to_port                 = 53
-    protocol                = "tcp"
-    source_security_group_id = aws_security_group.private_ec2_sg.id
+    description     = "DNS TCP internal"
+    from_port       = 53
+    to_port         = 53
+    protocol        = "tcp"
+    security_groups = [aws_security_group.private_ec2_sg.id]
   }
 
-  # Outbound access (SSM, apt, yum, etc.)
+  # Outbound access
   egress {
-    description = "Allow all outbound"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
