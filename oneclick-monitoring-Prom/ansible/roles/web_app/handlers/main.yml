@@ -1,4 +1,13 @@
+- name: daemon reload
+  systemd:
+    daemon_reload: yes
+
 - name: restart nginx
   systemd:
     name: nginx
+    state: restarted
+
+- name: restart nginx exporter
+  systemd:
+    name: nginx-exporter
     state: restarted

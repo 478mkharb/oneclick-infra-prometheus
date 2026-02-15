@@ -18,38 +18,59 @@
     dest: /etc/nginx/nginx.conf
   notify: restart nginx
 
+- name: Ensure nginx is enabled and running
+  systemd:
+    name: nginx
+    enabled: yes
+    state: started
+
+- name: Wait for nginx_status endpoint
+  uri:
+    url: http://127.0.0.1/nginx_status
+    status_code: 200
+  register: nginx_status_check
+  retries: 10
+  delay: 3
+  until: nginx_status_check.status == 200
+
 - name: Download nginx exporter
   get_url:
     url: https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
     dest: /tmp/nginx-exporter.tar.gz
+    mode: "0644"
 
 - name: Extract nginx exporter
   unarchive:
     src: /tmp/nginx-exporter.tar.gz
     dest: /usr/local/bin
     remote_src: yes
+    extra_opts: [--strip-components=1]
+    creates: /usr/local/bin/nginx-prometheus-exporter
 
-- name: Create exporter service
+- name: Create nginx exporter systemd service
   copy:
     dest: /etc/systemd/system/nginx-exporter.service
+    mode: "0644"
     content: |
       [Unit]
       Description=Nginx Prometheus Exporter
-      After=network.target
+      After=network.target nginx.service
+      Requires=nginx.service
 
       [Service]
       ExecStart=/usr/local/bin/nginx-prometheus-exporter \
         -nginx.scrape-uri http://127.0.0.1/nginx_status
       Restart=always
+      RestartSec=5
 
       [Install]
       WantedBy=multi-user.target
+  notify:
+    - daemon reload
+    - restart nginx exporter
 
-- name: Enable and start services
+- name: Enable and start nginx exporter
   systemd:
-    name: "{{ item }}"
+    name: nginx-exporter
     enabled: yes
     state: started
-  loop:
-    - nginx
-    - nginx-exporter
