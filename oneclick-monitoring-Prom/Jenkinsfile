@@ -30,10 +30,7 @@ pipeline {
 
     stage('Preflight: Docker Check') {
       steps {
-        sh '''
-          echo "Checking Docker availability..."
-          docker --version
-        '''
+        sh 'docker --version'
       }
     }
 
@@ -54,7 +51,7 @@ pipeline {
       }
     }
 
-    stage('Terraform FMT & Validate (CI)') {
+    stage('Terraform FMT & Validate') {
       when {
         allOf {
           expression { params.RUN_MODE == 'FULL' }
@@ -110,7 +107,7 @@ pipeline {
       }
     }
 
-    stage('Wait for SSM') {
+    stage('Fetch ALB DNS') {
       when {
         allOf {
           expression { params.RUN_MODE == 'FULL' }
@@ -118,7 +115,15 @@ pipeline {
         }
       }
       steps {
-        sh 'sleep 20'
+        dir('oneclick-monitoring-Prom/terraform') {
+          script {
+            env.ALB_DNS = sh(
+              script: 'terraform output -raw alb_dns',
+              returnStdout: true
+            ).trim()
+          }
+        }
+        echo "ALB DNS = ${env.ALB_DNS}"
       }
     }
 
@@ -138,33 +143,37 @@ pipeline {
       }
     }
 
-    stage('Run Ansible (SSM)') {
-  when {
-    expression { params.TF_ACTION == 'apply' }
-  }
-    steps {
-      ansiColor('xterm') {
-        dir('oneclick-monitoring-Prom/ansible') {
-          sh '''
-            export PATH=$PATH:/var/lib/jenkins/.local/bin
-            export ANSIBLE_CONFIG=$WORKSPACE/oneclick-monitoring-Prom/ansible/ansible.cfg
-            export ANSIBLE_FORCE_COLOR=true
+    stage('Run Ansible') {
+      when {
+        expression { params.TF_ACTION == 'apply' }
+      }
+      steps {
+        ansiColor('xterm') {
+          dir('oneclick-monitoring-Prom/ansible') {
+            sh """
+              export PATH=\$PATH:/var/lib/jenkins/.local/bin
+              export ANSIBLE_CONFIG=\$WORKSPACE/oneclick-monitoring-Prom/ansible/ansible.cfg
+              export ANSIBLE_FORCE_COLOR=true
 
-            ansible-galaxy collection install amazon.aws --force
-            ansible-playbook -i inventory/aws_ec2.aws_ec2.yml site.yml -vv
-          '''
+              ansible-galaxy collection install amazon.aws --force
+
+              ansible-playbook \
+                -i inventory/aws_ec2.aws_ec2.yml \
+                site.yml \
+                ${params.RUN_MODE == 'FULL' ? "-e alb_dns=${env.ALB_DNS}" : ""}
+            """
+          }
         }
       }
     }
-  } 
-}
-    post {
-      success {
-        echo "✅ Pipeline completed successfully"
-      }
-      failure {
-        echo "❌ Pipeline failed – check logs"
-      }
-    }
   }
 
+  post {
+    success {
+      echo "✅ Pipeline completed successfully"
+    }
+    failure {
+      echo "❌ Pipeline failed – check logs"
+    }
+  }
+}
