@@ -9,11 +9,8 @@ Type=simple
 ExecStart=/usr/local/bin/prometheus \
   --config.file=/etc/prometheus/prometheus.yml \
   --storage.tsdb.path=/var/lib/prometheus \
-  --web.listen-address=0.0.0.0:9090 \
-  --web.route-prefix=/prometheus \
-  --web.external-url=http://{{ alb_dns }}/prometheus
+  --web.listen-address=0.0.0.0:9090
 Restart=always
-
 
 [Install]
 WantedBy=multi-user.target
