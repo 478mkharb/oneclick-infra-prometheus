@@ -1,9 +1,7 @@
 ############################################
 # Self-referencing rules (MUST be separate)
 ############################################
-
-# Node Exporter (EC2 → EC2)
-resource "aws_security_group_rule" "node_exporter_self" {
+resource "aws_security_group_rule" "node_exporter" {
   type              = "ingress"
   from_port         = 9100
   to_port           = 9100
