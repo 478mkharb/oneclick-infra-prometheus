@@ -79,7 +79,7 @@
   loop:
     - node-exporter.json
     - prometheus.json
-    - blackbox.json
+    - nginx.json
 
 # # SELinux fixes (RedHat only)
 # - name: Set SELinux context for Grafana data 
@@ -113,14 +113,6 @@
 - name: Open Prometheus port
   ansible.posix.firewalld:
     port: 9090/tcp
-    permanent: yes
-    state: enabled
-    immediate: yes
-  when: ansible_os_family == "RedHat"
-
-- name: Open blackbox exporter port
-  ansible.posix.firewalld:
-    port: 9115/tcp
     permanent: yes
     state: enabled
     immediate: yes
