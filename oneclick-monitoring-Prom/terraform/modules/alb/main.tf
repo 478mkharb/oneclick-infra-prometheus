@@ -40,7 +40,13 @@ resource "aws_lb_target_group" "grafana" {
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "instance"
-
+  
+  stickiness {
+    type            = "lb_cookie"
+    enabled         = true
+    cookie_duration = 86400
+  }
+  
   health_check {
     protocol            = "HTTP"
     path                = "/grafana/login"
