@@ -48,7 +48,7 @@ scrape_configs:
         target_label: instance
 
   # Blackbox probe (ALB)
-  - job_name: blackbox-alb
+  - job_name: blackbox
     metrics_path: /probe
     params:
       module: [http_2xx]
