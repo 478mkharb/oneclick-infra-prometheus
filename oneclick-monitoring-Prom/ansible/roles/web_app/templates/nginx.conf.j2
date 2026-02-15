@@ -3,13 +3,39 @@ events {}
 http {
   server {
     listen {{ web_port }};
-    root /var/www/html;
-    index index.html;
+    server_name _;
 
+    # Default (optional)
     location / {
-      try_files $uri $uri/ =404;
+      return 200 "OK\n";
+      add_header Content-Type text/plain;
     }
 
+    # ----------------------------
+    # Grafana
+    # ----------------------------
+    location /grafana/ {
+      proxy_pass http://127.0.0.1:3000/;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # ----------------------------
+    # Prometheus
+    # ----------------------------
+    location /prometheus/ {
+      proxy_pass http://127.0.0.1:9090/;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # ----------------------------
+    # Nginx metrics
+    # ----------------------------
     location /nginx_status {
       stub_status;
       allow 127.0.0.1;
