@@ -46,19 +46,3 @@ scrape_configs:
         replacement: "$1:9113"
       - source_labels: [__meta_ec2_tag_Name]
         target_label: instance
-
-  # Blackbox probe (ALB)
-  - job_name: blackbox
-    metrics_path: /probe
-    params:
-      module: [http_2xx]
-    static_configs:
-      - targets:
-          - http://monitoring-alb-xxxx.ap-south-1.elb.amazonaws.com/
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - target_label: instance
-        replacement: alb
-      - target_label: __address__
-        replacement: 127.0.0.1:9115
