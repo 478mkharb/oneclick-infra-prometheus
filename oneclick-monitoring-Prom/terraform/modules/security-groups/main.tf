@@ -35,24 +35,6 @@ resource "aws_security_group" "private_ec2_sg" {
   description = "Security group for monitoring EC2 instances"
   vpc_id      = var.vpc_id
 
-  # Grafana from ALB
-  ingress {
-    description     = "Grafana from ALB"
-    from_port       = 3000
-    to_port         = 3000
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
-  }
-
-  # Prometheus from ALB
-  ingress {
-    description     = "Prometheus from ALB"
-    from_port       = 9090
-    to_port         = 9090
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -64,4 +46,33 @@ resource "aws_security_group" "private_ec2_sg" {
     Name    = "private-ec2-sg"
     Project = var.project
   }
+}
+# Grafana from ALB
+resource "aws_security_group_rule" "alb_to_grafana" {
+  type                     = "ingress"
+  from_port                = 3000
+  to_port                  = 3000
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.private_ec2_sg.id
+  source_security_group_id = aws_security_group.alb_sg.id
+}
+
+# Prometheus from ALB
+resource "aws_security_group_rule" "alb_to_prometheus" {
+  type                     = "ingress"
+  from_port                = 9090
+  to_port                  = 9090
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.private_ec2_sg.id
+  source_security_group_id = aws_security_group.alb_sg.id
+}
+
+# Node Exporter (internal only)
+resource "aws_security_group_rule" "node_exporter" {
+  type              = "ingress"
+  from_port         = 9100
+  to_port           = 9100
+  protocol          = "tcp"
+  security_group_id = aws_security_group.private_ec2_sg.id
+  self              = true
 }
