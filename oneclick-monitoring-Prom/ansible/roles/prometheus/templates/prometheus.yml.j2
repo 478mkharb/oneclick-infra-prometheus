@@ -6,9 +6,9 @@ global:
 
 scrape_configs:
 
-  # Prometheus self
+  # Prometheus self (FIXED)
   - job_name: prometheus
-    metrics_path: /metrics
+    metrics_path: /prometheus/metrics
     static_configs:
       - targets:
           - localhost:9090
@@ -27,7 +27,6 @@ scrape_configs:
       - source_labels: [__meta_ec2_private_ip]
         target_label: __address__
         replacement: "$1:9100"
-
       - source_labels: [__meta_ec2_tag_Name]
         target_label: instance
 
@@ -45,7 +44,6 @@ scrape_configs:
       - source_labels: [__meta_ec2_private_ip]
         target_label: __address__
         replacement: "$1:9113"
-
       - source_labels: [__meta_ec2_tag_Name]
         target_label: instance
 
@@ -56,7 +54,7 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
-          - http://monitoring-alb-xxxx.ap-south-1.elb.amazonaws.com
+          - http://monitoring-alb-xxxx.ap-south-1.elb.amazonaws.com/prometheus
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
