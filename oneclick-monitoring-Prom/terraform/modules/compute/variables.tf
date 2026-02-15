@@ -25,3 +25,6 @@ variable "prometheus_tg_arn" {
   type = string 
   
 }
+variable "nginx_tg_arn" {
+  type = string
+}

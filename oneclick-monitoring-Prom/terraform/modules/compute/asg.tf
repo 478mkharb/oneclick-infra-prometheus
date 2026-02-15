@@ -9,7 +9,8 @@ resource "aws_autoscaling_group" "monitoring_asg" {
   
   target_group_arns = [
     var.grafana_tg_arn,
-    var.prometheus_tg_arn
+    var.prometheus_tg_arn,
+    var.nginx_tg_arn
   ]
 
   health_check_type         = "EC2"

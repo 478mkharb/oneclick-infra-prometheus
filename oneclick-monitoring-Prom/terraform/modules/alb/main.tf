@@ -52,19 +52,30 @@ resource "aws_lb_target_group" "prometheus" {
   }
 }
 
+resource "aws_lb_listener_rule" "nginx_web" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 5
+
+  condition {
+    path_pattern {
+      values = ["/*"]
+    }
+  }
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.nginx_web.arn
+  }
+}
+
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.monitoring.arn
   port              = 80
   protocol          = "HTTP"
 
   default_action {
-    type = "fixed-response"
-
-    fixed_response {
-      content_type = "text/plain"
-      message_body = "OK"
-      status_code  = "200"
-    }
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.nginx_web.arn
   }
 }
 
@@ -97,5 +108,20 @@ resource "aws_lb_listener_rule" "grafana" {
   action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.grafana.arn
+  }
+}
+resource "aws_lb_listener_rule" "nginx_web" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 5
+
+  condition {
+    path_pattern {
+      values = ["/*"]
+    }
+  }
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.nginx_web.arn
   }
 }
