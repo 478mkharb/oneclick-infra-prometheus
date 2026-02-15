@@ -21,7 +21,7 @@ resource "aws_lb_target_group" "grafana" {
   health_check {
     protocol            = "HTTP"
     path                = "/grafana/login"
-    matcher             = "200-399"
+    matcher             = "302,200"
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2
