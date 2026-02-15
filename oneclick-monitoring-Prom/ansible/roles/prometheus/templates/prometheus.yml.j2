@@ -8,6 +8,7 @@ scrape_configs:
 
   # Prometheus self
   - job_name: prometheus
+    metrics_path: /prometheus/metrics
     static_configs:
       - targets:
           - localhost:9090
@@ -49,21 +50,17 @@ scrape_configs:
         target_label: instance
 
   # Blackbox probe ALB (frontend check)
-  - job_name: blackbox-alb
-    metrics_path: /probe
-    params:
-      module: [http_2xx]
-
-    static_configs:
-      - targets:
-          - http://{{ alb_dns_name }}
-
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-
-      - target_label: instance
-        replacement: alb
-
-      - target_label: __address__
-        replacement: 127.0.0.1:9115
+  - job_name: "blackbox-alb"
+  metrics_path: /probe
+  params:
+    module: [http_2xx]
+  static_configs:
+    - targets:
+        - http://monitoring-alb-xxxx.ap-south-1.elb.amazonaws.com/grafana
+  relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - target_label: instance
+      replacement: alb
+    - target_label: __address__
+      replacement: 127.0.0.1:9115
