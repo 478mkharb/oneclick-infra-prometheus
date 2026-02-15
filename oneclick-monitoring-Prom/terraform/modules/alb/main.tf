@@ -11,6 +11,28 @@ resource "aws_lb" "monitoring" {
   }
 }
 
+resource "aws_lb_target_group" "nginx_web" {
+  name        = "nginx-web-tg"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "instance"
+
+  health_check {
+    protocol            = "HTTP"
+    path                = "/"
+    matcher             = "200"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+
+  tags = {
+    Name = "nginx-web-tg"
+  }
+}
+
 resource "aws_lb_target_group" "grafana" {
   name        = "grafana-tg"
   port        = 3000
@@ -21,7 +43,7 @@ resource "aws_lb_target_group" "grafana" {
   health_check {
     protocol            = "HTTP"
     path                = "/grafana/login"
-    matcher             = "302,200"
+    matcher             = "200,302"
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2
@@ -41,7 +63,6 @@ resource "aws_lb_target_group" "prometheus" {
   target_type = "instance"
 
   health_check {
-    enabled             = true
     protocol            = "HTTP"
     path                = "/prometheus/-/healthy"
     matcher             = "200"
@@ -50,21 +71,9 @@ resource "aws_lb_target_group" "prometheus" {
     healthy_threshold   = 2
     unhealthy_threshold = 2
   }
-}
 
-resource "aws_lb_listener_rule" "nginx_web" {
-  listener_arn = aws_lb_listener.http.arn
-  priority     = 5
-
-  condition {
-    path_pattern {
-      values = ["/*"]
-    }
-  }
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.nginx_web.arn
+  tags = {
+    Name = "prometheus-tg"
   }
 }
 
@@ -108,20 +117,5 @@ resource "aws_lb_listener_rule" "grafana" {
   action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.grafana.arn
-  }
-}
-resource "aws_lb_listener_rule" "nginx_web" {
-  listener_arn = aws_lb_listener.http.arn
-  priority     = 5
-
-  condition {
-    path_pattern {
-      values = ["/*"]
-    }
-  }
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.nginx_web.arn
   }
 }
