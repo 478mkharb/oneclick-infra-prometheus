@@ -155,7 +155,9 @@ pipeline {
               export ANSIBLE_CONFIG=\$WORKSPACE/oneclick-monitoring-Prom/ansible/ansible.cfg
               export ANSIBLE_FORCE_COLOR=true
               ansible-galaxy collection install amazon.aws --force
-              ansible-playbook -i inventory/aws_ec2.aws_ec2.yml site.yml -vvv
+              ansible-playbook \
+                -i inventory/aws_ec2.aws_ec2.yml \
+                site.yml \
                 ${params.RUN_MODE == 'FULL' ? "-e alb_dns=${env.ALB_DNS}" : ""}
             """
           }
