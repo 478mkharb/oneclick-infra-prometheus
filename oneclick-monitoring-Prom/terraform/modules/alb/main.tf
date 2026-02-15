@@ -19,8 +19,9 @@ resource "aws_lb_target_group" "grafana" {
   target_type = "instance"
 
   health_check {
-    path                = "/grafana/api/health"
-    matcher             = "200"
+    protocol            = "HTTP"
+    path                = "/grafana/login"
+    matcher             = "200-399"
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2
@@ -40,7 +41,8 @@ resource "aws_lb_target_group" "prometheus" {
   target_type = "instance"
 
   health_check {
-    path                = "/-/ready"
+    protocol            = "HTTP"
+    path                = "/-/healthy"
     matcher             = "200"
     interval            = 30
     timeout             = 5
