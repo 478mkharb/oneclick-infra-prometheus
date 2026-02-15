@@ -6,7 +6,6 @@ resource "aws_security_group" "alb_sg" {
   description = "ALB security group"
   vpc_id      = var.vpc_id
 
-  # Public HTTP access
   ingress {
     description = "Allow HTTP from internet"
     from_port   = 80
@@ -15,7 +14,6 @@ resource "aws_security_group" "alb_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # ALB -> targets
   egress {
     from_port   = 0
     to_port     = 0
@@ -55,33 +53,6 @@ resource "aws_security_group" "private_ec2_sg" {
     security_groups = [aws_security_group.alb_sg.id]
   }
 
-  # Node Exporter (internal only)
-  ingress {
-    description     = "Node exporter internal"
-    from_port       = 9100
-    to_port         = 9100
-    protocol        = "tcp"
-    security_groups = [aws_security_group.private_ec2_sg.id]
-  }
-
-  # DNS internal
-  ingress {
-    description     = "DNS UDP internal"
-    from_port       = 53
-    to_port         = 53
-    protocol        = "udp"
-    security_groups = [aws_security_group.private_ec2_sg.id]
-  }
-
-  ingress {
-    description     = "DNS TCP internal"
-    from_port       = 53
-    to_port         = 53
-    protocol        = "tcp"
-    security_groups = [aws_security_group.private_ec2_sg.id]
-  }
-
-  # Outbound access
   egress {
     from_port   = 0
     to_port     = 0
