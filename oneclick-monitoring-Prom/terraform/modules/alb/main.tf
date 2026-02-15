@@ -19,10 +19,14 @@ resource "aws_lb_target_group" "nginx_web" {
   target_type = "instance"
 
   health_check {
-    protocol = "HTTP"
-    port     = "traffic-port"
-    path     = "/"
-    matcher  = "200"
+    protocol            = "HTTP"
+    path                = "/"
+    port                = "traffic-port"
+    matcher             = "200"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
   }
 
   tags = {
