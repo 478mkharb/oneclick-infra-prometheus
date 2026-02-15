@@ -4,13 +4,11 @@
   become: true
   become_user: root
   gather_facts: true
-  
+
   pre_tasks:
     - name: Fetch ALB DNS from SSM
       set_fact:
-        alb_dns: "{{ lookup('amazon.aws.ssm_parameter',
-                            '/monitoring/alb_dns',
-                            region='ap-south-1') }}"
+        alb_dns: "{{ lookup('amazon.aws.aws_ssm', '/monitoring/alb_dns', region=aws_region) }}"
 
   roles:
     - prometheus
