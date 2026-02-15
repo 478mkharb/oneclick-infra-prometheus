@@ -2,7 +2,7 @@ resource "aws_launch_template" "monitoring_server_lt" {
   name_prefix   = "monitoring-server-lt-"
   image_id      = data.aws_ami.ubuntu.id
   instance_type = var.instance_type_monitoring
-  
+
   iam_instance_profile {
     name = "ec2-ssm-profile"
   }
