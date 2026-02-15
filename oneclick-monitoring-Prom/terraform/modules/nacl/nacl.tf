@@ -72,7 +72,7 @@ resource "aws_network_acl_rule" "inbound_node_exporter" {
 # Ephemeral TCP (ALB health checks, NAT responses, SSM responses)
 resource "aws_network_acl_rule" "inbound_ephemeral_tcp" {
   network_acl_id = aws_network_acl.private_nacl.id
-  rule_number    = 100
+  rule_number    = 120
   egress         = false
   protocol       = "tcp"
   rule_action    = "allow"
@@ -84,7 +84,7 @@ resource "aws_network_acl_rule" "inbound_ephemeral_tcp" {
 # Ephemeral UDP (DNS responses)
 resource "aws_network_acl_rule" "inbound_ephemeral_udp" {
   network_acl_id = aws_network_acl.private_nacl.id
-  rule_number    = 110
+  rule_number    = 100
   egress         = false
   protocol       = "udp"
   rule_action    = "allow"
@@ -136,7 +136,7 @@ resource "aws_network_acl_rule" "outbound_dns_udp" {
 # Ephemeral outbound (responses to ALB / NAT)
 resource "aws_network_acl_rule" "outbound_ephemeral_tcp" {
   network_acl_id = aws_network_acl.private_nacl.id
-  rule_number    = 100
+  rule_number    = 120
   egress         = true
   protocol       = "tcp"
   rule_action    = "allow"
