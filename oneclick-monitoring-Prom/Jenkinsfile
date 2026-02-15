@@ -142,29 +142,30 @@ pipeline {
   when {
     expression { params.TF_ACTION == 'apply' }
   }
-  steps {
-    ansiColor('xterm') {
-      dir('oneclick-monitoring-Prom/ansible') {
-        sh '''
-          export PATH=$PATH:/var/lib/jenkins/.local/bin
-          export ANSIBLE_CONFIG=$WORKSPACE/oneclick-monitoring-Prom/ansible/ansible.cfg
-          export ANSIBLE_FORCE_COLOR=true
-          export ANSIBLE_STDOUT_CALLBACK=yaml
+    steps {
+      ansiColor('xterm') {
+        dir('oneclick-monitoring-Prom/ansible') {
+          sh '''
+            export PATH=$PATH:/var/lib/jenkins/.local/bin
+            export ANSIBLE_CONFIG=$WORKSPACE/oneclick-monitoring-Prom/ansible/ansible.cfg
+            export ANSIBLE_FORCE_COLOR=true
+            export ANSIBLE_STDOUT_CALLBACK=yaml
 
-          ansible-galaxy collection install amazon.aws --force
-          ansible-playbook -i inventory/aws_ec2.aws_ec2.yml site.yml -vv
-        '''
+            ansible-galaxy collection install amazon.aws --force
+            ansible-playbook -i inventory/aws_ec2.aws_ec2.yml site.yml -vv
+          '''
+        }
+      }
+    }
+  } 
+}
+    post {
+      success {
+        echo "✅ Pipeline completed successfully"
+      }
+      failure {
+        echo "❌ Pipeline failed – check logs"
       }
     }
   }
-}
 
-  post {
-    success {
-      echo "✅ Pipeline completed successfully"
-    }
-    failure {
-      echo "❌ Pipeline failed – check logs"
-    }
-  }
-}
