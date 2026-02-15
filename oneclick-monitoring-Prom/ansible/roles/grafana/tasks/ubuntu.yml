@@ -80,7 +80,7 @@
   loop:
     - node-exporter.json
     - prometheus.json
-    - blackbox.json
+    - nginx.json
 
 # Grafana configuration
 - name: Configure Grafana
