@@ -27,6 +27,7 @@ module "compute" {
   private_ec2_sg_id        = module.security_groups.private_ec2_sg_id
   grafana_tg_arn           = module.alb.grafana_tg_arn
   prometheus_tg_arn        = module.alb.prometheus_tg_arn
+  nginx_tg_arn            = module.alb.nginx_tg_arn
 }
 
 module "nacl" {
