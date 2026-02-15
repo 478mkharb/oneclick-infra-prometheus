@@ -13,6 +13,5 @@
   roles:
     - prometheus
     - grafana
-    - blackbox
     - node_exporter
     - web_app
