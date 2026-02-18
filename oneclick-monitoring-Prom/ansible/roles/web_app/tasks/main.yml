@@ -34,13 +34,13 @@
 
 - name: Wait for nginx_status endpoint
   uri:
-    url: http://127.0.0.1/nginx_status
+    url: "http://127.0.0.1:{{ web_port | default(80) }}/nginx_status"
     status_code: 200
   register: nginx_status_check
   retries: 10
   delay: 3
   until: nginx_status_check.status == 200
-
+  
 - name: Download nginx exporter
   get_url:
     url: https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
