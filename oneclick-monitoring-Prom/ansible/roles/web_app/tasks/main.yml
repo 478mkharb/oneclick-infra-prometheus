@@ -14,7 +14,7 @@
 
 - name: Deploy nginx site config
   template:
-    src: web_app.conf.j2
+    src: nginx.conf.j2
     dest: /etc/nginx/sites-available/web_app
     mode: "0644"
   notify: restart nginx
