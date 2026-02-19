@@ -26,12 +26,23 @@
     state: link
   notify: restart nginx
 
+# 🔴 IMPORTANT: remove default site
+- name: Remove default nginx site
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/nginx/sites-enabled/default
+    - /etc/nginx/sites-available/default
+  notify: restart nginx
+
 - name: Ensure nginx is enabled and running
   systemd:
     name: nginx
     enabled: yes
-    state: started
+    state: restarted
 
+# ✅ This will now pass
 - name: Wait for nginx_status endpoint
   uri:
     url: "http://127.0.0.1:{{ web_port | default(80) }}/nginx_status"
@@ -40,7 +51,10 @@
   retries: 10
   delay: 3
   until: nginx_status_check.status == 200
-  
+
+# -------------------------------------------------
+# Nginx exporter
+# -------------------------------------------------
 - name: Download nginx exporter
   get_url:
     url: https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
@@ -80,4 +94,3 @@
     name: nginx-exporter
     enabled: yes
     state: restarted
-
