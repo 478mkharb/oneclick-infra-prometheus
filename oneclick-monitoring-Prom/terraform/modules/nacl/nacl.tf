@@ -56,6 +56,17 @@ resource "aws_network_acl_rule" "inbound_prometheus" {
   from_port      = 9090
   to_port        = 9090
 }
+# Nginx Prometheus Exporter (internal scrape)
+resource "aws_network_acl_rule" "inbound_nginx_exporter" {
+  network_acl_id = aws_network_acl.private_nacl.id
+  rule_number    = 95
+  egress         = false
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = var.vpc_cidr
+  from_port      = 9113
+  to_port        = 9113
+}
 
 # Node Exporter (internal only)
 resource "aws_network_acl_rule" "inbound_node_exporter" {
