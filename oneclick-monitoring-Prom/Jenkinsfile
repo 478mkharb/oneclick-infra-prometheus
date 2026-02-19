@@ -7,11 +7,10 @@ pipeline {
       choices: ['FULL', 'CONFIG_ONLY'],
       description: 'FULL = Terraform + Ansible | CONFIG_ONLY = Ansible only'
     )
-
     choice(
       name: 'TF_ACTION',
       choices: ['apply', 'destroy'],
-      description: 'Terraform action (used only in FULL mode)'
+      description: 'Terraform action'
     )
   }
 
@@ -28,19 +27,19 @@ pipeline {
       }
     }
 
-    stage('Preflight: Docker Check') {
+    stage('Preflight') {
       steps {
         sh 'docker --version'
       }
     }
 
-    stage('Run Info') {
+    stage('Info') {
       steps {
-        echo "RUN_MODE=${params.RUN_MODE}, TF_ACTION=${params.TF_ACTION}"
+        echo "RUN_MODE=${params.RUN_MODE} TF_ACTION=${params.TF_ACTION}"
       }
     }
 
-    stage('GitLeaks Scan (CI)') {
+    stage('Gitleaks') {
       steps {
         sh '''
           docker run --rm \
@@ -51,12 +50,9 @@ pipeline {
       }
     }
 
-    stage('Terraform FMT & Validate') {
+    stage('Terraform Validate') {
       when {
-        allOf {
-          expression { params.RUN_MODE == 'FULL' }
-          expression { params.TF_ACTION == 'apply' }
-        }
+        expression { params.RUN_MODE == 'FULL' && params.TF_ACTION == 'apply' }
       }
       steps {
         dir('oneclick-monitoring-Prom/terraform') {
@@ -69,12 +65,9 @@ pipeline {
       }
     }
 
-    stage('Terraform Lint (tflint)') {
+    stage('Terraform Lint') {
       when {
-        allOf {
-          expression { params.RUN_MODE == 'FULL' }
-          expression { params.TF_ACTION == 'apply' }
-        }
+        expression { params.RUN_MODE == 'FULL' && params.TF_ACTION == 'apply' }
       }
       steps {
         dir('oneclick-monitoring-Prom/terraform') {
@@ -88,7 +81,7 @@ pipeline {
       }
     }
 
-    stage('Terraform Apply / Destroy') {
+    stage('Terraform Apply') {
       when {
         expression { params.RUN_MODE == 'FULL' }
       }
@@ -106,12 +99,9 @@ pipeline {
       }
     }
 
-    stage('Fetch ALB DNS') {
+    stage('Fetch Outputs') {
       when {
-        allOf {
-          expression { params.RUN_MODE == 'FULL' }
-          expression { params.TF_ACTION == 'apply' }
-        }
+        expression { params.RUN_MODE == 'FULL' && params.TF_ACTION == 'apply' }
       }
       steps {
         dir('oneclick-monitoring-Prom/terraform') {
@@ -122,21 +112,18 @@ pipeline {
             ).trim()
           }
         }
-        echo "ALB DNS = ${env.ALB_DNS}"
       }
     }
 
-    stage('Wait for ASG SSM Ready') {
+    stage('Wait for ASG (SSM)') {
       when {
-        allOf {
-          expression { params.RUN_MODE == 'FULL' }
-          expression { params.TF_ACTION == 'apply' }
-        }
+        expression { params.RUN_MODE == 'FULL' && params.TF_ACTION == 'apply' }
       }
       steps {
         dir('oneclick-monitoring-Prom/terraform') {
           sh '''
             ASG_NAME=$(terraform output -raw monitoring_asg_name)
+
             INSTANCE_IDS=$(aws autoscaling describe-auto-scaling-groups \
               --auto-scaling-group-names "$ASG_NAME" \
               --query 'AutoScalingGroups[0].Instances[?LifecycleState==`InService`].InstanceId' \
@@ -156,7 +143,7 @@ pipeline {
       }
     }
 
-    stage('Ansible Lint (CI)') {
+    stage('Ansible Lint') {
       when {
         expression { params.TF_ACTION == 'apply' }
       }
@@ -172,7 +159,7 @@ pipeline {
       }
     }
 
-    stage('Run Ansible') {
+    stage('Ansible Run') {
       when {
         expression { params.TF_ACTION == 'apply' }
       }
@@ -180,7 +167,6 @@ pipeline {
         ansiColor('xterm') {
           dir('oneclick-monitoring-Prom/ansible') {
             sh """
-              export PATH=\$PATH:/var/lib/jenkins/.local/bin
               export ANSIBLE_CONFIG=\$WORKSPACE/oneclick-monitoring-Prom/ansible/ansible.cfg
               export ANSIBLE_FORCE_COLOR=true
               ansible-galaxy collection install amazon.aws --force
@@ -196,11 +182,7 @@ pipeline {
   }
 
   post {
-    success {
-      echo "Pipeline completed successfully"
-    }
-    failure {
-      echo "Pipeline failed"
-    }
+    success { echo "Pipeline completed successfully" }
+    failure { echo "Pipeline failed" }
   }
 }
