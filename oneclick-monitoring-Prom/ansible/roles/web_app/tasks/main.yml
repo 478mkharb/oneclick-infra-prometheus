@@ -66,28 +66,28 @@
 # -------------------------------------------------
 # Nginx Prometheus Exporter
 # -------------------------------------------------
+# -------------------------------------------------
+# Nginx Prometheus Exporter
+# -------------------------------------------------
 - name: Download nginx exporter
   get_url:
     url: https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
     dest: /tmp/nginx-exporter.tar.gz
     mode: "0644"
 
-# ✅ Extract safely to /tmp (NOT directly to /usr/local/bin)
 - name: Extract nginx exporter
   unarchive:
     src: /tmp/nginx-exporter.tar.gz
     dest: /tmp
     remote_src: yes
-    creates: /tmp/nginx-prometheus-exporter_1.1.0_linux_amd64/nginx-prometheus-exporter
+    creates: /tmp/nginx-prometheus-exporter
 
-# ✅ Install binary to correct path
 - name: Install nginx exporter binary
   copy:
-    src: /tmp/nginx-prometheus-exporter_1.1.0_linux_amd64/nginx-prometheus-exporter
+    src: /tmp/nginx-prometheus-exporter
     dest: /usr/local/bin/nginx-prometheus-exporter
     mode: "0755"
     remote_src: yes
-
 # -------------------------------------------------
 # Systemd service
 # -------------------------------------------------
