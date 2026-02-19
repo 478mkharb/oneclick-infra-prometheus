@@ -67,6 +67,16 @@ resource "aws_security_group_rule" "alb_to_prometheus" {
   source_security_group_id = aws_security_group.alb_sg.id
 }
 
+# Nginx Prometheus Exporter (internal scrape)
+resource "aws_security_group_rule" "nginx_exporter" {
+  type              = "ingress"
+  from_port         = 9113
+  to_port           = 9113
+  protocol          = "tcp"
+  security_group_id = aws_security_group.private_ec2_sg.id
+  self              = true
+}
+
 # Node Exporter (internal only)
 resource "aws_security_group_rule" "node_exporter" {
   type              = "ingress"
