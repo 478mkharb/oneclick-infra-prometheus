@@ -142,9 +142,15 @@ pipeline {
               --query 'AutoScalingGroups[0].Instances[?LifecycleState==`InService`].InstanceId' \
               --output text \
               --region ${AWS_DEFAULT_REGION})
-            aws ssm wait instance-online \
-              --instance-ids $INSTANCE_IDS \
-              --region ${AWS_DEFAULT_REGION}
+
+            while true; do
+              ONLINE=$(aws ssm describe-instance-information \
+                --query "InstanceInformationList[?PingStatus=='Online'].InstanceId" \
+                --output text \
+                --region ${AWS_DEFAULT_REGION})
+              for ID in $INSTANCE_IDS; do echo "$ONLINE" | grep -q "$ID" || continue 2; done
+              break
+            done
           '''
         }
       }
