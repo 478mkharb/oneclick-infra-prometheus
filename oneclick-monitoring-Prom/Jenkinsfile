@@ -96,7 +96,6 @@ pipeline {
         dir('oneclick-monitoring-Prom/terraform') {
           sh '''
             terraform init
-
             if [ "${TF_ACTION}" = "apply" ]; then
               terraform apply -auto-approve
             else
@@ -124,6 +123,30 @@ pipeline {
           }
         }
         echo "ALB DNS = ${env.ALB_DNS}"
+      }
+    }
+
+    stage('Wait for ASG SSM Ready') {
+      when {
+        allOf {
+          expression { params.RUN_MODE == 'FULL' }
+          expression { params.TF_ACTION == 'apply' }
+        }
+      }
+      steps {
+        dir('oneclick-monitoring-Prom/terraform') {
+          sh '''
+            ASG_NAME=$(terraform output -raw monitoring_asg_name)
+            INSTANCE_IDS=$(aws autoscaling describe-auto-scaling-groups \
+              --auto-scaling-group-names "$ASG_NAME" \
+              --query 'AutoScalingGroups[0].Instances[?LifecycleState==`InService`].InstanceId' \
+              --output text \
+              --region ${AWS_DEFAULT_REGION})
+            aws ssm wait instance-online \
+              --instance-ids $INSTANCE_IDS \
+              --region ${AWS_DEFAULT_REGION}
+          '''
+        }
       }
     }
 
@@ -168,10 +191,10 @@ pipeline {
 
   post {
     success {
-      echo "✅ Pipeline completed successfully"
+      echo "Pipeline completed successfully"
     }
     failure {
-      echo "❌ Pipeline failed – check logs"
+      echo "Pipeline failed"
     }
   }
 }
