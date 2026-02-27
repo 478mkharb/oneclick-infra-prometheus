@@ -81,7 +81,7 @@
     dest: /usr/local/bin/nginx-prometheus-exporter
     mode: "0755"
     remote_src: yes
-
+---
 # Systemd service for nginx exporter
 - name: Create nginx exporter service
   copy:
