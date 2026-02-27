@@ -147,7 +147,10 @@
       "pluginVersion": "8.5.3",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
           "exemplar": true,
           "expr": "node_time_seconds{instance=\"$instance\"} - node_boot_time_seconds{instance=\"$instance\"}",
           "interval": "",
@@ -191,9 +194,9 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
       "decimals": 2,
       "description": "",
       "fieldConfig": {
@@ -255,7 +258,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "DS_PROMETHEUS"
           },
           "exemplar": true,
           "expr": "avg(rate(node_cpu_seconds_total{instance=\"$instance\",mode=\"system\"}[$interval])) by (instance) *100",
@@ -271,7 +274,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "DS_PROMETHEUS"
           },
           "exemplar": true,
           "expr": "avg(rate(node_cpu_seconds_total{instance=\"$instance\",mode=\"user\"}[$interval])) by (instance) *100",
@@ -286,7 +289,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "DS_PROMETHEUS"
           },
           "exemplar": true,
           "expr": "avg(rate(node_cpu_seconds_total{instance=\"$instance\",mode=\"iowait\"}[$interval])) by (instance) *100",
@@ -302,7 +305,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "DS_PROMETHEUS"
           },
           "exemplar": true,
           "expr": "(1 - avg(rate(node_cpu_seconds_total{instance=\"$instance\",mode=\"idle\"}[$interval])) by (instance))*100",
@@ -361,8 +364,9 @@
     },
     {
       "datasource": {
-        "uid": "$datasource"
-      },
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -501,7 +505,10 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
           "exemplar": true,
           "expr": "node_memory_MemTotal_bytes{instance=\"$instance\",job=\"$job\"}",
           "interval": "",
@@ -509,16 +516,22 @@
           "refId": "A"
         },
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
           "exemplar": true,
-          "expr": "node_memory_MemTotal_bytes{instance=\"$instance\",job=\"$job\"} - node_memory_MemFree_bytes{instance=\"$instance\",job=\"$job\"} - (node_memory_Cached_bytes{instance=\"$instance\",job=\"$job\"} + node_memory_Buffers_bytes{instance=\"$instan\",job=\"$job\"})",
+          "expr": "node_memory_MemTotal_bytes{instance=\"$instance\",job=\"$job\"} - node_memory_MemFree_bytes{instance=\"$instance\",job=\"$job\"} - (node_memory_Cached_bytes{instance=\"$instance\",job=\"$job\"} + node_memory_Buffers_bytes{instance=\"$instance\",job=\"$job\"})",
           "hide": false,
           "interval": "",
           "legendFormat": "RAM Used",
           "refId": "B"
         },
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": {
+            "type": "prometheus", 
+            "uid": "DS_PROMETHEUS"
+          },
           "exemplar": true,
           "expr": "node_memory_Cached_bytes{instance=\"$instance\",job=\"$job\"} + node_memory_Buffers_bytes{instance=\"$instance\",job=\"$job\"}",
           "hide": false,
@@ -527,7 +540,10 @@
           "refId": "C"
         },
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
           "exemplar": true,
           "expr": "node_memory_MemFree_bytes{instance=\"$instance\",job=\"$job\"}",
           "hide": false,
@@ -536,7 +552,10 @@
           "refId": "D"
         },
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
           "exemplar": true,
           "expr": "(node_memory_SwapTotal_bytes{instance=\"$instance\",job=\"$job\"} - node_memory_SwapFree_bytes{instance=\"$instance\",job=\"$job\"})",
           "hide": false,
@@ -580,8 +599,9 @@
     },
     {
       "datasource": {
-        "uid": "$datasource"
-      },
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
       "description": "Node Memory info",
       "fieldConfig": {
         "defaults": {
@@ -638,7 +658,10 @@
       "pluginVersion": "8.5.3",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
           "exemplar": true,
           "expr": "ceil(node_memory_MemTotal_bytes{instance=\"$instance\"}/(1024*1024))/1024",
           "interval": "",
@@ -646,7 +669,10 @@
           "refId": "A"
         },
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
           "exemplar": true,
           "expr": "ceil(node_memory_MemFree_bytes{instance=\"$instance\"}/(1024*1024))/1024",
           "hide": false,
@@ -655,7 +681,10 @@
           "refId": "B"
         },
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
           "exemplar": true,
           "expr": "(ceil(node_memory_MemTotal_bytes{instance=\"$instance\"}/(1024*1024))/1024)-(ceil(node_memory_MemFree_bytes{instance=\"$instance\"})/(1024*1024))/1024",
           "hide": false,
@@ -719,7 +748,10 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
           "exemplar": true,
           "expr": "node_filesystem_size_bytes{instance=\"$instance\",job=\"$job\",device!~'rootfs'} - node_filesystem_avail_bytes{instance=\"$instance\",job=\"$job\",device!~'rootfs'}",
           "interval": "",
@@ -773,10 +805,10 @@
       }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$datasource"
-      },
+     "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
       "description": "device=\"/dev/root\n",
       "fieldConfig": {
         "defaults": {
@@ -829,7 +861,10 @@
       "pluginVersion": "8.5.3",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
           "exemplar": true,
           "expr": "ceil(node_filesystem_size_bytes{device=\"/dev/root\",instance=\"$instance\"}/(1024*1024))/1024",
           "interval": "",
@@ -837,7 +872,10 @@
           "refId": "A"
         },
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
           "exemplar": true,
           "expr": "ceil(node_filesystem_avail_bytes{device=\"/dev/root\",instance=\"$instance\"}/(1024*1024))/1024",
           "hide": false,
@@ -846,7 +884,10 @@
           "refId": "B"
         },
         {
-          "datasource": "${DS_PROMETHEUS}",
+         "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
           "exemplar": true,
           "expr": "ceil(node_filesystem_size_bytes{device=\"/dev/root\",instance=\"$instance\"}/(1024*1024))/1024-ceil(node_filesystem_avail_bytes{device=\"/dev/root\",instance=\"$instance\"}/(1024*1024))/1024",
           "hide": false,
@@ -921,7 +962,10 @@
           "steppedLine": false,
           "targets": [
             {
-              "datasource": "${DS_PROMETHEUS}",
+             "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "exemplar": true,
               "expr": "irate(node_network_receive_bytes_total{instance=\"$instance\"}[5m])",
               "interval": "",
@@ -929,7 +973,10 @@
               "refId": "A"
             },
             {
-              "datasource": "${DS_PROMETHEUS}",
+              "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "exemplar": true,
               "expr": "irate(node_network_transmit_bytes_total{ instance=\"$instance\"}[5m])",
               "hide": false,
@@ -1115,9 +1162,9 @@
           "targets": [
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
-              },
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "exemplar": true,
               "expr": "rate(node_disk_reads_completed_total{instance=\"$instance\",job=\"$job\",device=~\"$device\"}[$interval])",
               "interval": "",
@@ -1125,10 +1172,10 @@
               "refId": "A"
             },
             {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
-              },
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "DS_PROMETHEUS"
+                },
               "exemplar": true,
               "expr": "rate(node_disk_writes_completed_total{instance=\"$instance\",job=\"$job\",device=~\"$device\"}[$interval])",
               "hide": false,
@@ -1200,7 +1247,8 @@
         },
         {
           "datasource": {
-            "uid": "$datasource"
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
           },
           "description": "Busy state of all CPU cores together (5 min average)",
           "fieldConfig": {
@@ -1269,7 +1317,10 @@
           "pluginVersion": "8.5.3",
           "targets": [
             {
-              "datasource": "${DS_PROMETHEUS}",
+             "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "exemplar": true,
               "expr": "avg(node_load1{instance=\"$instance\",job=\"$job\"}) /  count(count(node_cpu_seconds_total{instance=\"$instance\",job=\"$job\"}) by (cpu))",
               "interval": "",
@@ -1277,7 +1328,10 @@
               "refId": "A"
             },
             {
-              "datasource": "${DS_PROMETHEUS}",
+              "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "exemplar": true,
               "expr": "avg(node_load5{instance=\"$instance\",job=\"$job\"}) /  count(count(node_cpu_seconds_total{instance=\"$instance\",job=\"$job\"}) by (cpu)) ",
               "hide": false,
@@ -1286,7 +1340,10 @@
               "refId": "B"
             },
             {
-              "datasource": "${DS_PROMETHEUS}",
+              "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "exemplar": true,
               "expr": "avg(node_load15{instance=\"$instance\",job=\"$job\"}) /  count(count(node_cpu_seconds_total{instance=\"$instance\",job=\"$job\"}) by (cpu)) ",
               "hide": false,
@@ -1302,7 +1359,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "$datasource"
+            "uid": "DS_PROMETHEUS"
           },
           "fieldConfig": {
             "defaults": {
@@ -1367,7 +1424,10 @@
           "pluginVersion": "8.5.3",
           "targets": [
             {
-              "datasource": "${DS_PROMETHEUS}",
+              "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "exemplar": true,
               "expr": "avg(node_filesystem_files_free{instance=~\"$instance\",fstype=~\"ext.?|xfs\"})",
               "instant": true,
@@ -1381,9 +1441,10 @@
           "type": "stat"
         },
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "DS_PROMETHEUS"
+            },
           "description": "",
           "fieldConfig": {
             "defaults": {
@@ -1429,7 +1490,10 @@
           "pluginVersion": "8.5.3",
           "targets": [
             {
-              "datasource": "${DS_PROMETHEUS}",
+              "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "exemplar": true,
               "expr": "node_network_transmit_bytes_total{device=\"$network_interface\",instance=~'$instance'}",
               "interval": "",
@@ -1443,7 +1507,8 @@
         },
         {
           "datasource": {
-            "uid": "$datasource"
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
           },
           "fieldConfig": {
             "defaults": {
@@ -1489,7 +1554,10 @@
           "pluginVersion": "8.5.3",
           "targets": [
             {
-              "datasource": "${DS_PROMETHEUS}",
+              "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "exemplar": true,
               "expr": "node_network_receive_bytes_total{device=\"$network_interface\",instance=~'$instance'}",
               "interval": "",
@@ -1522,7 +1590,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "$datasource"
+            "uid": "DS_PROMETHEUS"
           },
           "fieldConfig": {
             "defaults": {
@@ -1590,9 +1658,9 @@
           "targets": [
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
-              },
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "exemplar": true,
               "expr": "(((count(count(node_cpu_seconds_total{instance=\"$instance\",job=\"$job\"}) by (cpu))) - avg(sum by (mode)(rate(node_cpu_seconds_total{mode='idle',instance=\"$instance\",job=\"$job\"}[$interval])))) * 100) / count(count(node_cpu_seconds_total{instance=\"$instance\",job=\"$job\"}) by (cpu))",
               "interval": "",
@@ -1601,9 +1669,9 @@
             },
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
-              },
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "exemplar": true,
               "expr": "100 - ((node_memory_MemAvailable_bytes{instance=\"$instance\",job=\"$job\"} * 100) / node_memory_MemTotal_bytes{instance=\"$instance\",job=\"$job\"})",
               "hide": false,
@@ -1613,9 +1681,9 @@
             },
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
-              },
+                  "type": "prometheus",
+                  "uid": "DS_PROMETHEUS"
+                },
               "exemplar": true,
               "expr": "100 - ((node_filesystem_avail_bytes{instance=\"$instance\",job=\"$job\",mountpoint=\"/\",fstype!=\"rootfs\"} * 100) / node_filesystem_size_bytes{instance=\"$instance\",job=\"$job\",mountpoint=\"/\",fstype!=\"rootfs\"})",
               "hide": false,
@@ -1629,7 +1697,8 @@
         },
         {
           "datasource": {
-            "uid": "$datasource"
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
           },
           "fieldConfig": {
             "defaults": {
@@ -1882,7 +1951,10 @@
           "pluginVersion": "8.5.3",
           "targets": [
             {
-              "datasource": "${DS_PROMETHEUS}",
+              "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "exemplar": true,
               "expr": "node_filesystem_size_bytes{instance=~'$instance',fstype=~\"ext.*|xfs\",mountpoint !~\".*pod.*\"}-0",
               "format": "table",
@@ -1892,7 +1964,10 @@
               "refId": "A"
             },
             {
-              "datasource": "${DS_PROMETHEUS}",
+              "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "exemplar": true,
               "expr": "node_filesystem_avail_bytes {instance=~'$instance',fstype=~\"ext.*|xfs\",mountpoint !~\".*pod.*\"}-0",
               "format": "table",
@@ -1903,7 +1978,10 @@
               "refId": "B"
             },
             {
-              "datasource": "${DS_PROMETHEUS}",
+              "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "exemplar": true,
               "expr": "(node_filesystem_size_bytes{instance=~'$instance',fstype=~\"ext.*|xfs\",mountpoint !~\".*pod.*\"}-node_filesystem_free_bytes{instance=~'$instance',fstype=~\"ext.*|xfs\",mountpoint !~\".*pod.*\"}) *100/(node_filesystem_avail_bytes {instance=~'$instance',fstype=~\"ext.*|xfs\",mountpoint !~\".*pod.*\"}+(node_filesystem_size_bytes{instance=~'$instance',fstype=~\"ext.*|xfs\",mountpoint !~\".*pod.*\"}-node_filesystem_free_bytes{instance=~'$instance',fstype=~\"ext.*|xfs\",mountpoint !~\".*pod.*\"}))",
               "format": "table",
@@ -1926,7 +2004,7 @@
           "dashes": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "DS_PROMETHEUS"
           },
           "decimals": 3,
           "description": "",
@@ -2003,9 +2081,9 @@
           "targets": [
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
-              },
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "expr": "rate(node_disk_read_bytes_total{instance=\"$instance\",job=\"$job\",device=~\"$device\"}[$interval])",
               "format": "time_series",
               "hide": false,
@@ -2016,9 +2094,9 @@
             },
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
-              },
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
               "expr": "rate(node_disk_written_bytes_total{instance=\"$instance\",job=\"$job\",device=~\"$device\"}[$interval])",
               "format": "time_series",
               "hide": false,
@@ -2094,8 +2172,9 @@
       {
         "current": {},
         "datasource": {
-          "uid": "$datasource"
-        },
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
         "definition": "label_values(node_uname_info, instance)",
         "hide": 0,
         "includeAll": false,
@@ -2143,9 +2222,10 @@
       },
       {
         "current": {},
-        "datasource": {
-          "uid": "$datasource"
-        },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
         "definition": "label_values(node_uname_info, nodename)",
         "hide": 2,
         "includeAll": false,
@@ -2169,8 +2249,9 @@
       {
         "current": {},
         "datasource": {
-          "uid": "$datasource"
-        },
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
         "definition": "label_values(node_disk_reads_completed_total, device)",
         "hide": 2,
         "includeAll": false,
@@ -2194,8 +2275,9 @@
       {
         "current": {},
         "datasource": {
-          "uid": "$datasource"
-        },
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
         "definition": "label_values(node_filesystem_size_bytes, device)",
         "hide": 2,
         "includeAll": false,
@@ -2217,9 +2299,10 @@
       },
       {
         "current": {},
-        "datasource": {
-          "uid": "$datasource"
-        },
+       "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -2243,8 +2326,9 @@
       {
         "current": {},
         "datasource": {
-          "uid": "$datasource"
-        },
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
         "definition": "query_result(count(node_uname_info{job=~\"$job\"}))",
         "hide": 2,
         "includeAll": false,
@@ -2268,8 +2352,9 @@
       {
         "current": {},
         "datasource": {
-          "uid": "$datasource"
-        },
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
         "definition": "label_values(node_network_info{operstate=\"up\"}, device)",
         "hide": 2,
         "includeAll": false,
