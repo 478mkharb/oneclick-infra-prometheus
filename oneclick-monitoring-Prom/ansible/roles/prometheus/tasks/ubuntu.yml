@@ -62,8 +62,8 @@
   notify: restart prometheus
 
 - name: Create systemd service
-  template:
-    src: prometheus.service.yml.j2
+  copy:
+    src: prometheus.service.ini
     dest: /etc/systemd/system/prometheus.service
     owner: root
     group: root

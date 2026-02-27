@@ -6,21 +6,19 @@
     update_cache: yes
     state: present
 
-# -------------------------------------------------
 # Web content
-# -------------------------------------------------
+
 - name: Copy HTML page
   copy:
     src: index.html
     dest: /var/www/html/index.html
     mode: "0644"
 
-# -------------------------------------------------
 # Nginx site
-# -------------------------------------------------
+
 - name: Deploy nginx site config
-  template:
-    src: nginx.conf.j2
+  copy:
+    src: nginx.conf
     dest: /etc/nginx/sites-available/web_app
     mode: "0644"
   notify: restart nginx
@@ -32,7 +30,7 @@
     state: link
   notify: restart nginx
 
-# Remove default nginx site (critical)
+
 - name: Remove default nginx site
   file:
     path: "{{ item }}"
@@ -42,18 +40,17 @@
     - /etc/nginx/sites-available/default
   notify: restart nginx
 
-# -------------------------------------------------
-# Start nginx cleanly
-# -------------------------------------------------
+
+# Start nginx
+
 - name: Ensure nginx is enabled and running
   systemd:
     name: nginx
     enabled: yes
     state: restarted
 
-# -------------------------------------------------
 # Health check
-# -------------------------------------------------
+
 - name: Wait for nginx_status endpoint
   uri:
     url: "http://127.0.0.1:{{ web_port | default(80) }}/nginx_status"
@@ -63,12 +60,8 @@
   delay: 3
   until: nginx_status_check.status == 200
 
-# -------------------------------------------------
 # Nginx Prometheus Exporter
-# -------------------------------------------------
-# -------------------------------------------------
-# Nginx Prometheus Exporter
-# -------------------------------------------------
+
 - name: Download nginx exporter
   get_url:
     url: https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
@@ -88,9 +81,8 @@
     dest: /usr/local/bin/nginx-prometheus-exporter
     mode: "0755"
     remote_src: yes
-# -------------------------------------------------
-# Systemd service
-# -------------------------------------------------
+
+# Systemd service for nginx exporter
 - name: Create nginx exporter service
   copy:
     dest: /etc/systemd/system/nginx-exporter.service
@@ -114,8 +106,3 @@
 - name: Reload systemd
   command: systemctl daemon-reload
 
-- name: Enable and restart nginx exporter
-  systemd:
-    name: nginx-exporter
-    enabled: yes
-    state: restarted

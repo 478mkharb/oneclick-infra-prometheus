@@ -6,18 +6,16 @@ global:
 
 scrape_configs:
 
-  # -------------------------------------------------
   # Prometheus self
-  # -------------------------------------------------
+  
   - job_name: prometheus
     metrics_path: /prometheus/metrics
     static_configs:
       - targets:
           - localhost:9090
 
-  # -------------------------------------------------
-  # Node Exporter (ASG-safe)
-  # -------------------------------------------------
+  # Node Exporter
+
   - job_name: node-exporter
     ec2_sd_configs:
       - region: {{ aws_region }}
@@ -45,9 +43,7 @@ scrape_configs:
       - source_labels: [__meta_ec2_availability_zone]
         target_label: az
 
-  # -------------------------------------------------
-  # Nginx Exporter (ASG-safe)
-  # -------------------------------------------------
+  # Nginx Exporter
   - job_name: nginx
     ec2_sd_configs:
       - region: {{ aws_region }}
