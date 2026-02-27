@@ -3,8 +3,4 @@
     name: nginx
     state: restarted
 
-- name: Enable and restart nginx exporter
-  systemd:
-    name: nginx-exporter
-    enabled: yes
-    state: restarted
+
