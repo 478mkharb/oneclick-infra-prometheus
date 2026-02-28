@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  options {
+    buildUserVars()   // REQUIRED for BUILD_USER
+  }
+
   parameters {
     choice(
       name: 'RUN_MODE',
@@ -182,7 +186,62 @@ pipeline {
   }
 
   post {
-    success { echo "Pipeline completed successfully" }
-    failure { echo "Pipeline failed" }
+
+    success {
+      emailext(
+        to: "478mkharb@gmail.com",
+        subject: "✅ Jenkins SUCCESS | ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+        body: """
+Hello Team,
+
+✅ Jenkins Pipeline Execution SUCCESSFUL
+
+--------------------------------------------------
+Pipeline Status : SUCCESS
+Job Name        : ${env.JOB_NAME}
+Build Number    : #${env.BUILD_NUMBER}
+Triggered By    : ${env.BUILD_USER ?: env.BUILD_CAUSE}
+Run Mode        : ${params.RUN_MODE}
+Terraform Action: ${params.TF_ACTION}
+--------------------------------------------------
+
+🔗 Build Details
+${env.BUILD_URL}
+
+Regards,
+Jenkins CI/CD
+""",
+        mimeType: 'text/plain'
+      )
+    }
+
+    failure {
+      emailext(
+        to: "478mkharb@gmail.com",
+        subject: "🚨 Jenkins FAILED | ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+        body: """
+Hello Team,
+
+🚨 Jenkins Pipeline Execution FAILED
+
+--------------------------------------------------
+Pipeline Status : FAILED
+Job Name        : ${env.JOB_NAME}
+Build Number    : #${env.BUILD_NUMBER}
+Triggered By    : ${env.BUILD_USER ?: env.BUILD_CAUSE}
+Run Mode        : ${params.RUN_MODE}
+Terraform Action: ${params.TF_ACTION}
+--------------------------------------------------
+
+🔗 Console Logs
+${env.BUILD_URL}
+
+Regards,
+Jenkins CI/CD
+""",
+        mimeType: 'text/plain',
+        attachLog: true
+      )
+    }
   }
 }
