@@ -209,11 +209,12 @@ pipeline {
 
   /* ================= POST ACTIONS ================= */
 
-  post {
-  success {
-    emailext(to: "478mkharb@gmail.com")
-  }
-  failure {
-    emailext(to: "478mkharb@gmail.com", attachLog: true)
+    post {
+    success {
+      emailext(to: "478mkharb@gmail.com")
+    }
+    failure {
+      emailext(to: "478mkharb@gmail.com", attachLog: true)
+    }
   }
 }
