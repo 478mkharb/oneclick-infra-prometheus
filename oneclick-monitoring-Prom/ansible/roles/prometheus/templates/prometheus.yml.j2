@@ -4,10 +4,15 @@ global:
   external_labels:
     environment: {{ prometheus_environment }}
 
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "localhost:9093"
+
 scrape_configs:
 
   # Prometheus self
-  
   - job_name: prometheus
     metrics_path: /prometheus/metrics
     static_configs:
@@ -15,7 +20,6 @@ scrape_configs:
           - localhost:9090
 
   # Node Exporter
-
   - job_name: node-exporter
     ec2_sd_configs:
       - region: {{ aws_region }}
@@ -26,20 +30,16 @@ scrape_configs:
             values: ["monitoring"]
 
     relabel_configs:
-      # target address
       - source_labels: [__meta_ec2_private_ip]
         target_label: __address__
         replacement: "$1:9100"
 
-      # UNIQUE identity (fixes duplicates)
       - source_labels: [__meta_ec2_instance_id]
         target_label: instance_id
 
-      # Human-readable name
       - source_labels: [__meta_ec2_tag_Name]
         target_label: instance_name
 
-      # optional: AZ visibility
       - source_labels: [__meta_ec2_availability_zone]
         target_label: az
 
@@ -54,19 +54,15 @@ scrape_configs:
             values: ["monitoring"]
 
     relabel_configs:
-      # target address
       - source_labels: [__meta_ec2_private_ip]
         target_label: __address__
         replacement: "$1:9113"
 
-      # UNIQUE identity (fixes duplicates)
       - source_labels: [__meta_ec2_instance_id]
         target_label: instance_id
 
-      # Human-readable name
       - source_labels: [__meta_ec2_tag_Name]
         target_label: instance_name
 
-      # optional: AZ visibility
       - source_labels: [__meta_ec2_availability_zone]
         target_label: az

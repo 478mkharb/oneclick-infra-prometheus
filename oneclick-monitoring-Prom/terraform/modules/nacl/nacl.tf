@@ -56,6 +56,17 @@ resource "aws_network_acl_rule" "inbound_prometheus" {
   from_port      = 9090
   to_port        = 9090
 }
+# Alertmanager (Prometheus → Alertmanager or ALB → EC2)
+resource "aws_network_acl_rule" "inbound_alertmanager" {
+  network_acl_id = aws_network_acl.private_nacl.id
+  rule_number    = 88
+  egress         = false
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = var.vpc_cidr
+  from_port      = 9093
+  to_port        = 9093
+}
 # Nginx Prometheus Exporter (internal scrape)
 resource "aws_network_acl_rule" "inbound_nginx_exporter" {
   network_acl_id = aws_network_acl.private_nacl.id
@@ -131,7 +142,17 @@ resource "aws_network_acl_rule" "outbound_http" {
   from_port      = 80
   to_port        = 80
 }
-
+# Alertmanager outbound (stateless mirror)
+resource "aws_network_acl_rule" "outbound_alertmanager" {
+  network_acl_id = aws_network_acl.private_nacl.id
+  rule_number    = 88
+  egress         = true
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = var.vpc_cidr
+  from_port      = 9093
+  to_port        = 9093
+}
 # DNS outbound
 resource "aws_network_acl_rule" "outbound_dns_udp" {
   network_acl_id = aws_network_acl.private_nacl.id

@@ -86,7 +86,15 @@ resource "aws_security_group_rule" "node_exporter" {
   security_group_id = aws_security_group.private_ec2_sg.id
   self              = true
 }
-
+# Alertmanager (Prometheus → Alertmanager, internal only)
+resource "aws_security_group_rule" "alertmanager_internal" {
+  type              = "ingress"
+  from_port         = 9093
+  to_port           = 9093
+  protocol          = "tcp"
+  security_group_id = aws_security_group.private_ec2_sg.id
+  self              = true
+}
 # Nginx Web App from ALB
 resource "aws_security_group_rule" "alb_to_nginx" {
   type                     = "ingress"
