@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   options {
-    buildUserVars()   // REQUIRED for BUILD_USER
+    withBuildUser() 
   }
 
   parameters {
