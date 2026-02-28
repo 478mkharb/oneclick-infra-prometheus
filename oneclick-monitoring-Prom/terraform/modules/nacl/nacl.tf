@@ -164,7 +164,17 @@ resource "aws_network_acl_rule" "outbound_dns_udp" {
   from_port      = 53
   to_port        = 53
 }
-
+# OUTBOUND SMTP
+resource "aws_network_acl_rule" "outbound_smtp_587" {
+  network_acl_id = aws_network_acl.private_nacl.id
+  rule_number    = 95
+  egress         = true
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 587
+  to_port        = 587
+}
 # Ephemeral outbound (responses to ALB / NAT)
 resource "aws_network_acl_rule" "outbound_ephemeral_tcp" {
   network_acl_id = aws_network_acl.private_nacl.id
