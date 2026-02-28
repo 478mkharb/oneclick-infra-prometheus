@@ -11,7 +11,7 @@ groups:
           rate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[5m])
         ) * 100
       ) > 80
-    for: 5m
+    for: 10s
     labels:
       severity: warning
     annotations:
@@ -30,7 +30,7 @@ groups:
           node_memory_MemTotal_bytes{job="node-exporter"}
         )
       ) * 100 > 85
-    for: 5m
+    for: 10s
     labels:
       severity: warning
     annotations:
@@ -45,7 +45,7 @@ groups:
         node_filesystem_avail_bytes{job="node-exporter",fstype!~"tmpfs|overlay"} /
         node_filesystem_size_bytes{job="node-exporter",fstype!~"tmpfs|overlay"}
       ) * 100 < 15
-    for: 10m
+    for: 10s
     labels:
       severity: critical
     annotations:
