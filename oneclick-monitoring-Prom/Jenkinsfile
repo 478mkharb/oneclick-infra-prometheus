@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   options {
-    withBuildUser()        
+    withBuildUser()
     timestamps()
   }
 
@@ -46,7 +46,8 @@ pipeline {
 
     stage('Info') {
       steps {
-        echo "RUN_MODE=${params.RUN_MODE} TF_ACTION=${params.TF_ACTION}"
+        echo "RUN_MODE=${params.RUN_MODE}"
+        echo "TF_ACTION=${params.TF_ACTION}"
       }
     }
 
@@ -205,11 +206,24 @@ pipeline {
         }
       }
     }
+
+    /* ================= EMAIL VARIABLES ================= */
+
+    stage('Prepare Email Variables') {
+      steps {
+        script {
+          env.MAIL_BUILD_DURATION = currentBuild.durationString
+          env.MAIL_NODE_NAME = env.NODE_NAME
+          env.MAIL_WORKSPACE = env.WORKSPACE
+          env.MAIL_AWS_REGION = env.AWS_DEFAULT_REGION
+        }
+      }
+    }
   }
 
   /* ================= POST ACTIONS ================= */
 
-      post {
+  post {
     success {
       emailext(
         to: '478mkharb@gmail.com',
