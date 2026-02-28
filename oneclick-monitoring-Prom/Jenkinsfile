@@ -211,10 +211,22 @@ pipeline {
 
       post {
     success {
-      echo "Build successful – email sent via global trigger"
+      emailext(
+        to: '478mkharb@gmail.com',
+        subject: '$DEFAULT_SUBJECT',
+        body: '$DEFAULT_CONTENT',
+        mimeType: 'text/html'
+      )
     }
+
     failure {
-      echo "Build failed – email sent via global trigger"
+      emailext(
+        to: '478mkharb@gmail.com',
+        subject: '$DEFAULT_SUBJECT',
+        body: '$DEFAULT_CONTENT',
+        mimeType: 'text/html',
+        attachLog: true
+      )
     }
   }
 }
