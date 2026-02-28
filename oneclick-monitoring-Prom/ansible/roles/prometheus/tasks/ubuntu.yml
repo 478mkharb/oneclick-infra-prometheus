@@ -69,3 +69,20 @@
     group: root
     mode: "0644"
   notify: restart prometheus
+
+- name: Create Prometheus rules directory
+  file:
+    path: /etc/prometheus/rules
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: "0755"
+
+- name: Install Prometheus alert rules
+  copy:
+    src: rules/
+    dest: /etc/prometheus/rules/
+    owner: prometheus
+    group: prometheus
+    mode: "0644"
+  notify: reload prometheus

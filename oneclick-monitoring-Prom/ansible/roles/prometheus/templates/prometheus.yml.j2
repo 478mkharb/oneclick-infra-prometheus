@@ -4,6 +4,9 @@ global:
   external_labels:
     environment: {{ prometheus_environment }}
 
+rule_files:
+  - /etc/prometheus/rules/*.yml
+  
 alerting:
   alertmanagers:
     - static_configs:
