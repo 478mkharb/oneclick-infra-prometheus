@@ -34,7 +34,6 @@ pipeline {
 
   environment {
     AWS_DEFAULT_REGION = 'ap-south-1'
-    ALERTMANAGER_SMTP_PASSWORD = credentials('ALERTMANAGER_SMTP_PASSWORD')
   }
 
   stages {
@@ -89,9 +88,7 @@ pipeline {
     /* ================= TERRAFORM ================= */
 
     stage('Terraform Validate') {
-      when {
-        expression { params.RUN_MODE == 'FULL' }
-      }
+      when { expression { params.RUN_MODE == 'FULL' } }
       steps {
         dir('oneclick-monitoring-Prom/terraform') {
           sh '''
@@ -104,9 +101,7 @@ pipeline {
     }
 
     stage('Terraform Lint') {
-      when {
-        expression { params.RUN_MODE == 'FULL' }
-      }
+      when { expression { params.RUN_MODE == 'FULL' } }
       steps {
         dir('oneclick-monitoring-Prom/terraform') {
           sh '''
@@ -121,29 +116,18 @@ pipeline {
       }
     }
 
-    /* ================= TERRAFORM PLAN (DRY RUN) ================= */
-
     stage('Terraform Plan (Dry Run)') {
-      when {
-        expression { params.RUN_MODE == 'FULL' }
-      }
+      when { expression { params.RUN_MODE == 'FULL' } }
       steps {
         dir('oneclick-monitoring-Prom/terraform') {
           sh '''
             terraform init
-
-            terraform plan \
-              -out=tfplan \
-              -no-color
-
-            terraform show -no-color tfplan \
-              > ../../reports/tfplan.txt
+            terraform plan -out=tfplan -no-color
+            terraform show -no-color tfplan > ../../reports/tfplan.txt
           '''
         }
       }
     }
-
-    /* ================= APPLY / DESTROY ================= */
 
     stage('Terraform Apply / Destroy') {
       when {
@@ -218,30 +202,28 @@ pipeline {
       steps {
         ansiColor('xterm') {
           dir('oneclick-monitoring-Prom/ansible') {
-            sh """
-              export ANSIBLE_CONFIG=\$WORKSPACE/oneclick-monitoring-Prom/ansible/ansible.cfg
-              export ANSIBLE_FORCE_COLOR=true
-              ansible-galaxy collection install amazon.aws --force
-              ansible-playbook \
-                -i inventory/aws_ec2.aws_ec2.yml \
-                site.yml \
-                -e "alertmanager_smtp_password=${ALERTMANAGER_SMTP_PASSWORD}" \
-                ${params.RUN_MODE == 'FULL' ? "-e alb_dns=${env.ALB_DNS}" : ""}
-            """
+
+            withCredentials([
+              string(
+                credentialsId: 'ALERTMANAGER_SMTP_PASSWORD',
+                variable: 'ALERTMANAGER_SMTP_PASSWORD'
+              )
+            ]) {
+
+              sh """
+                export ANSIBLE_CONFIG=\$WORKSPACE/oneclick-monitoring-Prom/ansible/ansible.cfg
+                export ANSIBLE_FORCE_COLOR=true
+
+                ansible-galaxy collection install amazon.aws --force
+
+                ansible-playbook \
+                  -i inventory/aws_ec2.aws_ec2.yml \
+                  site.yml \
+                  -e alertmanager_smtp_password=\$ALERTMANAGER_SMTP_PASSWORD \
+                  ${params.RUN_MODE == 'FULL' ? "-e alb_dns=${env.ALB_DNS}" : ""}
+              """
+            }
           }
-        }
-      }
-    }
-
-    /* ================= EMAIL VARIABLES ================= */
-
-    stage('Prepare Email Variables') {
-      steps {
-        script {
-          env.MAIL_BUILD_DURATION = currentBuild.durationString
-          env.MAIL_NODE_NAME = env.NODE_NAME
-          env.MAIL_WORKSPACE = env.WORKSPACE
-          env.MAIL_AWS_REGION = env.AWS_DEFAULT_REGION
         }
       }
     }
