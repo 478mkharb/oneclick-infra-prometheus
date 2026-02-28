@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   options {
-    withBuildUser()        // Enables BUILD_USER
+    withBuildUser()        
     timestamps()
   }
 
@@ -210,58 +210,10 @@ pipeline {
   /* ================= POST ACTIONS ================= */
 
   post {
-
-    always {
-      archiveArtifacts artifacts: 'reports/**/*.json', fingerprint: true
-    }
-
-    success {
-      emailext(
-        to: "478mkharb@gmail.com",
-        subject: "✅ Jenkins SUCCESS | ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-        body: """
-Pipeline Status : SUCCESS
-Job             : ${env.JOB_NAME}
-Build           : #${env.BUILD_NUMBER}
-Triggered By    : ${env.BUILD_USER ?: env.BUILD_CAUSE}
-Run Mode        : ${params.RUN_MODE}
-Terraform Action: ${params.TF_ACTION}
-
-Reports Generated:
-- Gitleaks
-- Terraform Lint
-- Ansible Lint
-
-Build URL:
-${env.BUILD_URL}
-""",
-        mimeType: 'text/plain'
-      )
-    }
-
-    failure {
-      emailext(
-        to: "478mkharb@gmail.com",
-        subject: "🚨 Jenkins FAILED | ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-        body: """
-Pipeline Status : FAILED
-Job             : ${env.JOB_NAME}
-Build           : #${env.BUILD_NUMBER}
-Triggered By    : ${env.BUILD_USER ?: env.BUILD_CAUSE}
-Run Mode        : ${params.RUN_MODE}
-Terraform Action: ${params.TF_ACTION}
-
-Reports Available:
-- Gitleaks
-- Terraform Lint
-- Ansible Lint
-
-Console Logs:
-${env.BUILD_URL}
-""",
-        mimeType: 'text/plain',
-        attachLog: true
-      )
-    }
+  success {
+    emailext(to: "478mkharb@gmail.com")
+  }
+  failure {
+    emailext(to: "478mkharb@gmail.com", attachLog: true)
   }
 }
