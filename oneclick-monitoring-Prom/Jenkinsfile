@@ -2,7 +2,8 @@ pipeline {
   agent any
 
   options {
-    withBuildUser() 
+    withBuildUser()        // Enables BUILD_USER
+    timestamps()
   }
 
   parameters {
@@ -31,6 +32,12 @@ pipeline {
       }
     }
 
+    stage('Prepare Reports Directory') {
+      steps {
+        sh 'mkdir -p reports/gitleaks reports/tflint reports/ansible-lint'
+      }
+    }
+
     stage('Preflight') {
       steps {
         sh 'docker --version'
@@ -43,16 +50,25 @@ pipeline {
       }
     }
 
-    stage('Gitleaks') {
+    /* ================= SECURITY ================= */
+
+    stage('Gitleaks Scan') {
       steps {
         sh '''
           docker run --rm \
             -v "$PWD:/repo" \
             zricethezav/gitleaks:latest \
-            detect --source=/repo --no-git
+            detect \
+            --source=/repo \
+            --no-git \
+            --report-format json \
+            --report-path /repo/reports/gitleaks/gitleaks-report.json \
+            || true
         '''
       }
     }
+
+    /* ================= TERRAFORM ================= */
 
     stage('Terraform Validate') {
       when {
@@ -79,13 +95,15 @@ pipeline {
             docker run --rm \
               -v "$PWD:/data" \
               -w /data \
-              ghcr.io/terraform-linters/tflint
+              ghcr.io/terraform-linters/tflint \
+              --format json \
+              > ../../reports/tflint/tflint-report.json || true
           '''
         }
       }
     }
 
-    stage('Terraform Apply') {
+    stage('Terraform Apply / Destroy') {
       when {
         expression { params.RUN_MODE == 'FULL' }
       }
@@ -103,7 +121,7 @@ pipeline {
       }
     }
 
-    stage('Fetch Outputs') {
+    stage('Fetch Terraform Outputs') {
       when {
         expression { params.RUN_MODE == 'FULL' && params.TF_ACTION == 'apply' }
       }
@@ -119,7 +137,7 @@ pipeline {
       }
     }
 
-    stage('Wait for ASG (SSM)') {
+    stage('Wait for ASG (SSM Ready)') {
       when {
         expression { params.RUN_MODE == 'FULL' && params.TF_ACTION == 'apply' }
       }
@@ -147,6 +165,8 @@ pipeline {
       }
     }
 
+    /* ================= ANSIBLE ================= */
+
     stage('Ansible Lint') {
       when {
         expression { params.TF_ACTION == 'apply' }
@@ -157,7 +177,9 @@ pipeline {
             docker run --rm \
               -v "$PWD:/work" \
               -w /work \
-              cytopia/ansible-lint .
+              cytopia/ansible-lint \
+              -f json \
+              . > ../../reports/ansible-lint/ansible-lint-report.json || true
           '''
         }
       }
@@ -185,31 +207,33 @@ pipeline {
     }
   }
 
+  /* ================= POST ACTIONS ================= */
+
   post {
+
+    always {
+      archiveArtifacts artifacts: 'reports/**/*.json', fingerprint: true
+    }
 
     success {
       emailext(
         to: "478mkharb@gmail.com",
         subject: "✅ Jenkins SUCCESS | ${env.JOB_NAME} #${env.BUILD_NUMBER}",
         body: """
-Hello Team,
-
-✅ Jenkins Pipeline Execution SUCCESSFUL
-
---------------------------------------------------
 Pipeline Status : SUCCESS
-Job Name        : ${env.JOB_NAME}
-Build Number    : #${env.BUILD_NUMBER}
+Job             : ${env.JOB_NAME}
+Build           : #${env.BUILD_NUMBER}
 Triggered By    : ${env.BUILD_USER ?: env.BUILD_CAUSE}
 Run Mode        : ${params.RUN_MODE}
 Terraform Action: ${params.TF_ACTION}
---------------------------------------------------
 
-🔗 Build Details
+Reports Generated:
+- Gitleaks
+- Terraform Lint
+- Ansible Lint
+
+Build URL:
 ${env.BUILD_URL}
-
-Regards,
-Jenkins CI/CD
 """,
         mimeType: 'text/plain'
       )
@@ -220,24 +244,20 @@ Jenkins CI/CD
         to: "478mkharb@gmail.com",
         subject: "🚨 Jenkins FAILED | ${env.JOB_NAME} #${env.BUILD_NUMBER}",
         body: """
-Hello Team,
-
-🚨 Jenkins Pipeline Execution FAILED
-
---------------------------------------------------
 Pipeline Status : FAILED
-Job Name        : ${env.JOB_NAME}
-Build Number    : #${env.BUILD_NUMBER}
+Job             : ${env.JOB_NAME}
+Build           : #${env.BUILD_NUMBER}
 Triggered By    : ${env.BUILD_USER ?: env.BUILD_CAUSE}
 Run Mode        : ${params.RUN_MODE}
 Terraform Action: ${params.TF_ACTION}
---------------------------------------------------
 
-🔗 Console Logs
+Reports Available:
+- Gitleaks
+- Terraform Lint
+- Ansible Lint
+
+Console Logs:
 ${env.BUILD_URL}
-
-Regards,
-Jenkins CI/CD
 """,
         mimeType: 'text/plain',
         attachLog: true
