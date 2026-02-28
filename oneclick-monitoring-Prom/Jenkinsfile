@@ -219,7 +219,7 @@ pipeline {
                 ansible-playbook \
                   -i inventory/aws_ec2.aws_ec2.yml \
                   site.yml \
-                  -e alertmanager_smtp_password=\$ALERTMANAGER_SMTP_PASSWORD \
+                  -e "alertmanager_smtp_password=\$ALERTMANAGER_SMTP_PASSWORD" \
                   ${params.RUN_MODE == 'FULL' ? "-e alb_dns=${env.ALB_DNS}" : ""}
               """
             }
