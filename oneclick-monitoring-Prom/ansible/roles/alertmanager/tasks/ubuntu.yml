@@ -34,10 +34,13 @@
     mode: "0755"
     remote_src: yes
 
-- name: Copy Alertmanager config
-  copy:
-    src: alertmanager.yml
-    dest: "{{ alertmanager_config_dir }}/alertmanager.yml"
+- name: Render Alertmanager config
+  template:
+    src: alertmanager.yml.j2
+    dest: /etc/alertmanager/alertmanager.yml
+    owner: alertmanager
+    group: alertmanager
+    mode: '0644'
   notify: Restart alertmanager
 
 - name: Install systemd service
