@@ -34,6 +34,7 @@ pipeline {
 
   environment {
     AWS_DEFAULT_REGION = 'ap-south-1'
+    ALERTMANAGER_SMTP_PASSWORD = credentials('ALERTMANAGER_SMTP_PASSWORD')
   }
 
   stages {
@@ -224,6 +225,7 @@ pipeline {
               ansible-playbook \
                 -i inventory/aws_ec2.aws_ec2.yml \
                 site.yml \
+                -e "alertmanager_smtp_password=${ALERTMANAGER_SMTP_PASSWORD}" \
                 ${params.RUN_MODE == 'FULL' ? "-e alb_dns=${env.ALB_DNS}" : ""}
             """
           }
