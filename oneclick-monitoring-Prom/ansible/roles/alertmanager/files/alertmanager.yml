@@ -9,9 +9,9 @@ global:
 
 route:
   receiver: "email-notifications"
-  group_wait: 30s
-  group_interval: 5m
-  repeat_interval: 4h
+  group_wait: 5s
+  group_interval: 1m
+  repeat_interval: 1m
 
 receivers:
 - name: "email-notifications"
