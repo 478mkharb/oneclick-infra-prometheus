@@ -213,7 +213,7 @@ pipeline {
     success {
       emailext(
         to: '478mkharb@gmail.com',
-        subject: '$DEFAULT_SUBJECT',
+        subject: '$PROJECT_NAME | SUCCESS | Build #$BUILD_NUMBER',
         body: '$DEFAULT_CONTENT',
         mimeType: 'text/html'
       )
@@ -222,7 +222,7 @@ pipeline {
     failure {
       emailext(
         to: '478mkharb@gmail.com',
-        subject: '$DEFAULT_SUBJECT',
+        subject: '$PROJECT_NAME | FAILED | Build #$BUILD_NUMBER',
         body: '$DEFAULT_CONTENT',
         mimeType: 'text/html',
         attachLog: true
