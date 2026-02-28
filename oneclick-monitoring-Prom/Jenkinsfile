@@ -209,12 +209,12 @@ pipeline {
 
   /* ================= POST ACTIONS ================= */
 
-    post {
+      post {
     success {
-      emailext(to: "478mkharb@gmail.com")
+      echo "Build successful – email sent via global trigger"
     }
     failure {
-      emailext(to: "478mkharb@gmail.com", attachLog: true)
+      echo "Build failed – email sent via global trigger"
     }
   }
 }
