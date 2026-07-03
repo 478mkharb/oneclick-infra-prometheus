@@ -93,7 +93,7 @@ pipeline {
         dir('oneclick-monitoring-Prom/terraform') {
           sh '''
             terraform fmt -recursive
-            terraform init -backend=true
+            terraform init -reconfigure -backend=false
             terraform validate
           '''
         }
